@@ -4,6 +4,13 @@ import { getTrendingController } from "./controllers/trending.controller.js";
 import { searchController } from "./controllers/search.controller.js";
 import { rateLimit } from "express-rate-limit";
 import cors from "cors";
+import {
+  movieDetailsController,
+  topRatedMoviesAndSeriesController,
+} from "./controllers/movie.controller.js";
+import { reviewsController } from "./controllers/reviews.controller.js";
+import { recommendedController } from "./controllers/recommended.controller.js";
+import { seriesDetailsController } from "./controllers/series.controller.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,10 +22,12 @@ const limiter = rateLimit({
   legacyHeaders: false, // no X-RateLimit headers
 });
 
-app.use(cors({
-  origin: 'http://localhost:5173',  // 👈 Allow only your frontend (this is for local testing purposes, and i have to actually set it to the website link in production)
-  methods: ['GET', 'POST', 'PUT', 'DELETE']  // Allowed methods
-}));
+app.use(
+  cors({
+    origin: "http://localhost:5173", // 👈 Allow only your frontend (this is for local testing purposes, and i have to actually set it to the website link in production)
+    methods: ["GET", "POST", "PUT", "DELETE"], // Allowed methods
+  }),
+);
 
 app.use(limiter);
 
@@ -26,9 +35,23 @@ app.get("/", (req, res) => {
   res.send("<h1 style='color: red;'>Hello world</h1>");
 });
 
-app.get("/trending", getTrendingController);
 
+// general movies and series and characters endpoints/routes
+app.get("/trending", getTrendingController);
+app.get("/recommended/:id", recommendedController);
+app.get("/reviews/:id", reviewsController);
+app.get("/top_rated", topRatedMoviesAndSeriesController);
 app.get("/search", searchController);
+
+
+// movies
+app.get("/movies/:movie_id", movieDetailsController);
+
+
+
+// series
+app.get("/series/:series_id", seriesDetailsController);
+
 
 app.listen(PORT, () => {
   console.log("running on http://localhost:3000");

@@ -12,8 +12,8 @@ export default defineConfig([
     files: ["**/*.{js,mjs,cjs}"],
     languageOptions: { globals: globals.node },
     rules: {
-      'no-console': 'warn'
-    }
+      "no-console": "warn",
+    },
   },
-  {ignores: ["node_modules/", "dist/", "**/*.test.js"]}
+  { ignores: ["node_modules/", "dist/", "**/*.test.js"] },
 ]);
