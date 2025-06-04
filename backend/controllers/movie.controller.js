@@ -20,6 +20,7 @@ async function movieDetailsController(req, res) {
 
 async function topRatedMoviesAndSeriesController(req, res) {
   const { k, l } = req.query;
+  let { page } = req.query;
   if (l !== "ar" && l !== "en" && l !== undefined) {
     res.json({
       status: "Error",
@@ -29,8 +30,18 @@ async function topRatedMoviesAndSeriesController(req, res) {
     return;
   }
 
+  if (!page) {
+    page = 1;
+  }
+
+  if (isNaN(Number(page))) {
+    return res.json({
+      message: "page must be a number",
+    });
+  }
+
   if (k === "movie" || k === "tv") {
-    const data = await getTopRated(k, l);
+    const data = await getTopRated(k, l, page);
     return res.status(200).json(data);
   }
 
