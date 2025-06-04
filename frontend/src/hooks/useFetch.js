@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 
 function useFetch(url, options = {}) {
   const [data, setData] = useState(null);
@@ -8,17 +8,24 @@ function useFetch(url, options = {}) {
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
-    const finalUrl = (options.lang === "ar" && options.currentPage) ? url + `&l=ar&page=${options.currentPage}`: (options.lang !== "ar" && options.currentPage) ? url + `&page=${options.currentPage}` : url;
- 
+
+    const finalUrl =
+      options.lang === "ar" && options.currentPage
+        ? url + `&l=ar&page=${options.currentPage}`
+        : options.lang !== "ar" && options.currentPage
+          ? url + `&page=${options.currentPage}`
+          : options.lang === "ar" && !options.currentPage
+            ? url + `&l=ar`
+            : url;
+
     try {
       const response = await fetch(finalUrl);
-     
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const result = await response.json();
+
       setData(result);
     } catch (e) {
       setError(e);
@@ -35,4 +42,3 @@ function useFetch(url, options = {}) {
 }
 
 export default useFetch;
-

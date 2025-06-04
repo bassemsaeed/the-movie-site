@@ -22,7 +22,7 @@ function App({ children }) {
 
     document.documentElement.setAttribute(
       "dir",
-      themeState.lang === "ar" ? "rtl" : "ltr"
+      themeState.lang === "ar" ? "rtl" : "ltr",
     );
 
     if (themeState.theme === "dark") {

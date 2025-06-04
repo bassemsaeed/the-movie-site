@@ -1,7 +1,7 @@
 import { parse } from "date-fns";
 import { Flame, Star } from "lucide-react";
 import React from "react";
-import {useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import useFetch from "../hooks/useFetch";
 import useTheme from "../hooks/useTheme";
 import { motion } from "framer-motion";
@@ -23,14 +23,14 @@ const TopRated = React.memo(() => {
       lang,
       retryCount,
       currentPage,
-    }
+    },
   );
 
   useLayoutEffect(() => {
     setNumOfPages(
       Number(data?.total_pages ?? 0) > MAX_PAGE
         ? 500
-        : Number(data?.total_pages ?? 0)
+        : Number(data?.total_pages ?? 0),
     );
     setStartPage(1);
     setCurrentPage(1);
@@ -333,7 +333,7 @@ const TopRatedPageBtn = ({
 
   if (error) {
     return (
-      <button className="px-2 py-1 bg-black/30 dark:bg-white/30 font-ar dark:text-white cursor-pointer select-none h-6.5 grow rounded-sm"></button>
+      <button className="px-2 py-1 bg-black/30 dark:bg-white/30 font-ar dark:text-white cursor-not-allowed select-none h-6.5 grow rounded-sm"></button>
     );
   }
 

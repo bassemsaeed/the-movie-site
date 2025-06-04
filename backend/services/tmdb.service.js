@@ -102,6 +102,13 @@ async function getSeriesReviews(series_id, lang, page = 1) {
 
   return data;
 }
+
+async function getMedia(media_type, id) {
+  const data = await fetchData(BASE_API_URL + `${media_type}/${id}/images`);
+
+  return data;
+}
+
 export {
   getTrending,
   searchMulti,
@@ -110,6 +117,7 @@ export {
   getMovieReviews,
   getRecommendedMovies,
   getRecommendedSeries,
+  getMedia,
   getSeiresDetails,
   getSeriesReviews,
 };

@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
-
-*, ::before, ::after {
+*,
+::before,
+::after {
   box-sizing: border-box;
 }
 
-body, html {
+body,
+html {
   margin: 0;
 }
 
-
-
 @font-face {
-  font-family: 'main-font';
+  font-family: "main-font";
   src: url(./fonts/Vazirmatn/static/Vazirmatn-Bold.ttf);
   font-weight: 500;
   font-display: swap;
@@ -21,15 +21,12 @@ body, html {
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-ar:'main-font', sans-serif;
-
+  --font-ar: "main-font", sans-serif;
 }
 
-
 @layer utilities {
-
   .hidden-scrollbar::-webkit-scrollbar {
-      width: 0px;
+    width: 0px;
   }
 
   .custom-scrollbar::-webkit-scrollbar {
@@ -43,7 +40,4 @@ body, html {
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-500 dark:bg-zinc-400;
   }
-
 }
-
-
