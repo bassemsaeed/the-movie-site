@@ -1,9 +1,7 @@
-import React from 'react'
+import React from "react";
 
 const WatchLater = () => {
-  return (
-    <div>WatchLater</div>
-  )
-}
+  return <div>WatchLater</div>;
+};
 
-export default WatchLater
+export default WatchLater;

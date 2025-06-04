@@ -11,6 +11,7 @@ import {
 import { reviewsController } from "./controllers/reviews.controller.js";
 import { recommendedController } from "./controllers/recommended.controller.js";
 import { seriesDetailsController } from "./controllers/series.controller.js";
+import { mediaController } from "./controllers/media.controller.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -35,7 +36,6 @@ app.get("/", (req, res) => {
   res.send("<h1 style='color: red;'>Hello world</h1>");
 });
 
-
 // general movies and series and characters endpoints/routes
 app.get("/trending", getTrendingController);
 app.get("/recommended/:id", recommendedController);
@@ -43,15 +43,13 @@ app.get("/reviews/:id", reviewsController);
 app.get("/top_rated", topRatedMoviesAndSeriesController);
 app.get("/search", searchController);
 
+app.get("/media/:mediaType/:mediaId", mediaController);
 
 // movies
 app.get("/movies/:movie_id", movieDetailsController);
 
-
-
 // series
 app.get("/series/:series_id", seriesDetailsController);
-
 
 app.listen(PORT, () => {
   console.log("running on http://localhost:3000");
