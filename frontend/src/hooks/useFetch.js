@@ -9,7 +9,7 @@ function useFetch(url, options = {}) {
     setLoading(true);
     setError(null);
     
-    const finalUrl = (options.lang === "ar" && options.currentPage) ? url + `&l=ar&page=${options.currentPage}`:  url;
+    const finalUrl = (options.lang === "ar" && options.currentPage) ? url + `&l=ar&page=${options.currentPage}`: (options.lang !== "ar" && options.currentPage) ? url + `&page=${options.currentPage}` : url;
  
     try {
       const response = await fetch(finalUrl);
