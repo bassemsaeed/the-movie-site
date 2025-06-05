@@ -23,7 +23,7 @@ const Trending = () => {
     {
       lang,
       retryCount,
-    },
+    }
   );
 
   const MAX_ITEMS = data?.results.length || 0;
@@ -48,6 +48,8 @@ const Trending = () => {
   };
 
   useEffect(() => {
+
+    let controller = null;
     if (loading) {
       return;
     } else if (error) {
@@ -57,18 +59,24 @@ const Trending = () => {
       return;
     } else if (
       (category === "tv" && data?.results[0]?.media_type === "movie") ||
-      (category === "movie" && data?.results[0]?.media_type === "tv")
+      (category === "movie" && data?.results[0]?.media_type === "tv") // this is to make sure im working on the correct type of data 
     ) {
       return;
     } else {
-      fetchMedia();
+      
+      controller = new AbortController();
+      const signal = controller.signal;
+      fetchMedia(signal);
     }
 
-    async function fetchMedia() {
+    async function fetchMedia(signal) {
       setLoadingCurrentIndexMedia(true);
+      
       try {
         const response = await fetch(
-          `http://localhost:3000/media/${category}/${data?.results[currentTrendingIndex]?.id}`,
+          `http://localhost:3000/media/${category}/${data?.results[currentTrendingIndex]?.id}`, {
+            signal
+          }
         );
 
         if (!response.ok) {
@@ -83,6 +91,14 @@ const Trending = () => {
         setLoadingCurrentIndexMedia(false);
       }
     }
+
+
+    return () => {
+      if (controller) {
+        controller.abort();
+      }
+    }
+
   }, [category, data, loading, error, currentTrendingIndex]);
 
   if (loading) {
@@ -99,7 +115,7 @@ const Trending = () => {
     );
   }
   return (
-    <div className="w-full h-full bg-gray-100 dark:bg-neutral-800 rounded-xl relative">
+    <motion.div initial={{opacity: 0}} animate={{opacity: 1}} className="w-full h-full bg-gray-100 dark:bg-neutral-800 rounded-xl relative">
       {
         <div
           className={
@@ -125,7 +141,7 @@ const Trending = () => {
               getTextByLang(
                 lang,
                 " mask-l-from-0 mask-t-from-70",
-                " mask-r-from-50 mask-t-from-105",
+                " mask-r-from-50 mask-t-from-105"
               )
             }
           ></div>
@@ -148,7 +164,11 @@ const Trending = () => {
               {loadingCurrentIndexMedia ? (
                 <div className="w-6 h-6 rounded-full animate-spin border-t-2 border-t-red-500 " />
               ) : errorLoadingMedia ? (
-                <div className="text-white">{errorLoadingMedia.message}</div>
+                <div className="text-white">
+                  {data?.results[currentTrendingIndex]?.title ||
+                    data?.results[currentTrendingIndex]?.name ||
+                    getTextByLang(lang, "لا يوجد عنوان", "No Title")}
+                </div>
               ) : currentIndexMedia?.logos?.length > 0 ? (
                 <motion.div
                   initial={{ y: -20, opacity: 0 }}
@@ -156,7 +176,7 @@ const Trending = () => {
                   className="flex justify-center items-center w-fit  h-fit"
                 >
                   {currentIndexMedia.logos.filter(
-                    (logo) => logo["iso_639_1"] === "en",
+                    (logo) => logo["iso_639_1"] === "en"
                   ).length === 0 ? (
                     <h2 className="text-white font-ar lg:text-2xl md:text-lg sm:text-sm text-[13px]">
                       {data?.results[currentTrendingIndex]?.title ||
@@ -167,15 +187,15 @@ const Trending = () => {
                       src={
                         BASE_LOGO_URL +
                         currentIndexMedia.logos.filter(
-                          (logo) => logo["iso_639_1"] === "en",
+                          (logo) => logo["iso_639_1"] === "en"
                         )[0]?.file_path
                       }
                       className={
                         "w-full select-none sm:h-[35px] md:h-[45px] lg:h-[45px] object-cover" +
                         (Number(
                           currentIndexMedia.logos.filter(
-                            (logo) => logo["iso_639_1"] === "en",
-                          )[0]?.height,
+                            (logo) => logo["iso_639_1"] === "en"
+                          )[0]?.height
                         ) > 300
                           ? " h-[35px]"
                           : " h-[15px]")
@@ -238,7 +258,7 @@ const Trending = () => {
               getTextByLang(
                 lang,
                 "lg:left-5 md:left-5 sm:left-3 left-2",
-                "lg:right-5 md:right-5 sm:right-3 right-2",
+                "lg:right-5 md:right-5 sm:right-3 right-2"
               )
             }
           >
@@ -284,7 +304,7 @@ const Trending = () => {
           </div>
         </div>
       }
-    </div>
+    </motion.div>
   );
 };
 
