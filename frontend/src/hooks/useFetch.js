@@ -8,7 +8,8 @@ function useFetch(url, options = {}) {
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
-
+    const controller = new AbortController();
+    const signal = controller.signal;
     const finalUrl =
       options.lang === "ar" && options.currentPage
         ? url + `&l=ar&page=${options.currentPage}`
@@ -18,8 +19,11 @@ function useFetch(url, options = {}) {
             ? url + `&l=ar`
             : url;
 
-    try {
-      const response = await fetch(finalUrl);
+    try { 
+      
+      const response = await fetch(finalUrl, {
+        signal
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -31,6 +35,11 @@ function useFetch(url, options = {}) {
       setError(e);
     } finally {
       setLoading(false);
+    }
+
+
+    return () => {
+      controller.abort();
     }
   }, [url, options.currentPage, options.lang, JSON.stringify(options)]); // keeping it to refresh when same button same settings clicked again to trigger a refresh
 
