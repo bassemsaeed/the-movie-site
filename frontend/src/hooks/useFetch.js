@@ -19,10 +19,9 @@ function useFetch(url, options = {}) {
             ? url + `&l=ar`
             : url;
 
-    try { 
-      
+    try {
       const response = await fetch(finalUrl, {
-        signal
+        signal,
       });
 
       if (!response.ok) {
@@ -37,10 +36,9 @@ function useFetch(url, options = {}) {
       setLoading(false);
     }
 
-
     return () => {
       controller.abort();
-    }
+    };
   }, [url, options.currentPage, options.lang, JSON.stringify(options)]); // keeping it to refresh when same button same settings clicked again to trigger a refresh
 
   useEffect(() => {
