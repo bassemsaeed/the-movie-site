@@ -12,6 +12,8 @@ import { reviewsController } from "./controllers/reviews.controller.js";
 import { recommendedController } from "./controllers/recommended.controller.js";
 import { seriesDetailsController } from "./controllers/series.controller.js";
 import { mediaController } from "./controllers/media.controller.js";
+import { seasonInfoController } from "./controllers/seasons.controller.js";
+import { episodeInfoController } from "./controllers/episode.controller.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -50,6 +52,8 @@ app.get("/movies/:movie_id", movieDetailsController);
 
 // series
 app.get("/series/:series_id", seriesDetailsController);
+app.get("/season/:seriesId/:seasonNum", seasonInfoController);
+app.get("/episode/:seriesId/:seasonNum/:episodeNum", episodeInfoController);
 
 app.listen(PORT, () => {
   console.log("running on http://localhost:3000");
