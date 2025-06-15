@@ -23,6 +23,18 @@ html {
 
 @theme {
   --font-ar: "main-font", sans-serif;
+
+  --animate-slide: slide 0.8s ease-in-out infinite;
+  --breakpoint-xs: 399px;
+
+  @keyframes slide {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(100vw);
+    }
+  }
 }
 
 @layer utilities {
