@@ -1,10 +1,18 @@
 import { parse } from "date-fns";
-import { Flame, Star } from "lucide-react";
-import React from "react";
+import {
+  Flame,
+  Star,
+  HeartOff,
+  BookmarkMinus,
+  BookmarkPlus,
+} from "lucide-react";
+import React, { useEffect } from "react";
 import { useLayoutEffect, useState } from "react";
 import useFetch from "../hooks/useFetch";
 import useTheme from "../hooks/useTheme";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router";
+import { getTextByLang } from "../utils";
 
 const BASE_MEDIA_URL = "https://image.tmdb.org/t/p/w600_and_h900_bestv2/";
 const TopRated = React.memo(() => {
@@ -192,9 +200,11 @@ const TopRated = React.memo(() => {
             </button>
           </div>
         ) : (
-          data.results.map((s) => (
+          data?.results.map((s) => (
             <MovieCard
               key={s.id}
+              id={s.id}
+              currentItem={s}
               bg={s.backdrop_path}
               poster={s.poster_path}
               title={s.title ? s.title : s.name}
@@ -202,6 +212,7 @@ const TopRated = React.memo(() => {
               rel_date={s.release_date ? s.release_date : s.first_air_date}
               rating={Number(s.vote_average).toFixed(1)}
               popularity={Number(s.popularity).toFixed(2)}
+              category={chosenCategory}
             />
           ))
         )}
@@ -215,10 +226,17 @@ const MovieCard = ({
   poster,
   title,
   popularity,
+  id,
   rel_date,
+  category,
   org_title,
+  currentItem,
 }) => {
+  let navigate = useNavigate();
   const { lang } = useTheme();
+
+  const [isLiked, setIsLiked] = useState(false);
+  const [isSavedInWatchLater, setIsSavedInWatchLater] = useState(false);
   const finalDate =
     lang === "ar"
       ? new Intl.DateTimeFormat("ar-EG-u-nu-arab", {
@@ -227,6 +245,28 @@ const MovieCard = ({
           year: "numeric",
         }).format(parse(rel_date, "yyyy-mm-dd", new Date()))
       : rel_date;
+
+  useEffect(() => {
+    const IS_SAVED_IN_WATCHLATER = JSON.parse(
+      localStorage.getItem("watchLaterMedia"),
+    ).find((item) => item?.id === id);
+
+    const IS_IN_LIKED = JSON.parse(localStorage.getItem("likedMedia")).find(
+      (item) => item?.id === id,
+    );
+
+    if (IS_SAVED_IN_WATCHLATER) {
+      setIsSavedInWatchLater(true);
+    } else {
+      setIsSavedInWatchLater(false);
+    }
+
+    if (IS_IN_LIKED) {
+      setIsLiked(true);
+    } else {
+      setIsLiked(false);
+    }
+  }, [id]);
   return (
     <motion.div
       initial={{ y: -30 }}
@@ -235,7 +275,16 @@ const MovieCard = ({
     >
       <div className="bg-transparent w-full h-full grid grid-cols-[100px_1fr]  py-1.5">
         <div className="object-cover w-full h-full cursor-pointer">
-          <img className="w-full h-full" src={BASE_MEDIA_URL + poster} alt="" />
+          <img
+            className="w-full h-full"
+            src={BASE_MEDIA_URL + poster}
+            onClick={() =>
+              navigate(
+                `${category === "movie" ? "movies" : "series"}/${id}${lang === "ar" ? "?l=ar" : ""}`,
+              )
+            }
+            alt=""
+          />
         </div>
         <div className="flex flex-col px-2 justify-center py-0.5">
           <div className="mb-auto flex flex-col gap-0.5">
@@ -249,11 +298,87 @@ const MovieCard = ({
             </p>
 
             <div className="flex gap-4 items-center  font-ar text-sm mt-2">
-              <button className="bg-black/15 py-1.5 px-3 rounded-sm cursor-pointer dark:bg-white/15 dark:text-white">
-                {lang === "ar" ? "شاهد لاحقا" : "Watch later"}
+              <button
+                className="bg-black/15 py-1.5 px-3 rounded-sm cursor-pointer dark:bg-white/15 dark:text-white"
+                onClick={() => {
+                  const WATCHLATER_LIST = JSON.parse(
+                    localStorage.getItem("watchLaterMedia"),
+                  );
+
+                  if (isSavedInWatchLater) {
+                    const UPDATED_WATCHLATER_LIST = WATCHLATER_LIST.filter(
+                      (item) => item?.id !== id,
+                    );
+                    console.log(UPDATED_WATCHLATER_LIST);
+
+                    localStorage.setItem(
+                      "watchLaterMedia",
+                      JSON.stringify(UPDATED_WATCHLATER_LIST),
+                    );
+
+                    setIsSavedInWatchLater(false);
+                  } else {
+                    currentItem.media_type =
+                      category === "movie" ? "movie" : "tv";
+
+                    WATCHLATER_LIST.push(currentItem);
+
+                    localStorage.setItem(
+                      "watchLaterMedia",
+                      JSON.stringify(WATCHLATER_LIST),
+                    );
+
+                    setIsSavedInWatchLater(true);
+                  }
+                }}
+              >
+                {isSavedInWatchLater ? (
+                  <div className="flex flex-row items-center justify-center gap-2">
+                    <BookmarkMinus size={18} />
+                    {getTextByLang(
+                      lang,
+                      "إزالة من القائمة",
+                      "Remove from List",
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex flex-row items-center justify-center gap-2">
+                    <BookmarkPlus size={18} />
+                  </div>
+                )}
               </button>
-              <button className="bg-rose-500/75  hover:bg-rose-500/90 transition-all duration-100 py-1.5 px-3 rounded-sm text-white cursor-pointer">
-                {lang === "ar" ? "أعجبني" : "Like"}
+              <button
+                className="bg-rose-500/75  hover:bg-rose-500/90 transition-all duration-100 py-1.5 px-3 rounded-sm text-white cursor-pointer flex flex-row gap-2 items-center justify-center"
+                onClick={() => {
+                  const storedLikedMedia = JSON.parse(
+                    localStorage.getItem("likedMedia"),
+                  );
+                  if (isLiked) {
+                    const newFilteredMedia = storedLikedMedia.filter(
+                      (item) => item.id !== id,
+                    );
+                    localStorage.setItem(
+                      "likedMedia",
+                      JSON.stringify(newFilteredMedia),
+                    );
+                    setIsLiked(false);
+                  } else {
+                    currentItem.media_type =
+                      category === "movie" ? "movie" : "tv";
+                    storedLikedMedia.push(currentItem);
+                    localStorage.setItem(
+                      "likedMedia",
+                      JSON.stringify(storedLikedMedia),
+                    );
+                    setIsLiked(true);
+                  }
+                }}
+              >
+                {isLiked ? (
+                  <HeartOff color="white" size={20} />
+                ) : (
+                  getTextByLang(lang, "أعجبني", "Like")
+                )}
               </button>
             </div>
           </div>

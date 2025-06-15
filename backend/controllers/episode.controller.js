@@ -19,8 +19,8 @@ async function episodeInfoController(req, res) {
     return res.status(200).json(data);
   } catch (e) {
     return res.json({
-      status: "An error happend",
-      message: "Check series id and season number, " + e.message,
+      status: "error",
+      message: "Check series id and season number and episode numbers, " + e.message, seriesId, seasonNum, episodeNum
     });
   }
 }

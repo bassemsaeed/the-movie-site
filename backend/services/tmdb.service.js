@@ -111,7 +111,7 @@ async function getMedia(media_type, id) {
 
 async function getSeasonInfo(seriesId, seasonNumber, lang) {
   lang = lang === undefined ? "en-US" : lang;
-
+  
   const data = await fetchData(
     BASE_API_URL + `tv/${seriesId}/season/${seasonNumber}?language=${lang}`,
   );

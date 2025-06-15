@@ -1,15 +1,20 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import useTheme from "../hooks/useTheme";
 import useFetch from "../hooks/useFetch";
 import { getTextByLang } from "../utils";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Heart, HeartOff } from "lucide-react";
+import { useNavigate, useNavigation } from "react-router";
 
 const BASE_MEDIA_URL = "https://image.tmdb.org/t/p/w1280/";
 const BASE_LOGO_URL = "https://media.themoviedb.org/t/p/w500";
 
 const Trending = () => {
   const { lang } = useTheme();
+  const navigate = useNavigate();
+  const navigation = useNavigation();
+  const isNavigating = Boolean(navigation.location);
+  console.log(isNavigating);
 
   const [category, setCategory] = useState("movie");
   const [currentTrendingIndex, setCurrentTrendingIndex] = useState(0);
@@ -27,6 +32,18 @@ const Trending = () => {
   );
 
   const MAX_ITEMS = data?.results.length || 0;
+
+  const [isLiked, setIsLiked] = useState(false);
+  console.log("is found ->", isLiked);
+  const idOfMovieOrSeries = data?.results[currentTrendingIndex]?.id;
+
+  useEffect(() => {
+    const liked = JSON.parse(localStorage.getItem("likedMedia"))?.find(
+      (item) => item.id === data?.results[currentTrendingIndex].id,
+    );
+
+    setIsLiked(liked ? true : false);
+  }, [data, currentTrendingIndex]);
 
   const handleNext = () => {
     if (currentTrendingIndex === MAX_ITEMS - 1) {
@@ -151,12 +168,12 @@ const Trending = () => {
           <div className="w-full h-full absolute top-0 before:content-[''] before:absolute before:h-60 before:bottom-0  before:bg-linear-to-t before:from-black before:to-black/0 before:w-full">
             <ArrowRight
               color="white"
-              className="absolute top-10/12 right-6 cursor-pointer"
+              className="absolute top-10/12 right-6 cursor-pointer z-50"
               onClick={lang === "ar" ? handlePrev : handleNext}
             />
             <ArrowLeft
               color="white"
-              className="absolute left-10 top-10/12 cursor-pointer"
+              className="absolute left-10 top-10/12 cursor-pointer z-50"
               onClick={lang === "ar" ? handleNext : handlePrev}
             />
 
@@ -220,11 +237,63 @@ const Trending = () => {
               </div>
 
               <div className="w-fit h-10  z-40  flex items-center justify-around gap-3">
-                <button className="lg:w-[130px] md:w-[130px] sm:w-[110px] w-[80px] h-10/12 rounded-lg cursor-pointer text-white font-ar border-[0.1px] border-white/10 text-sm bg-black/80">
+                <button
+                  className="lg:w-[130px] md:w-[130px] sm:w-[110px] w-[80px] h-10/12 rounded-lg cursor-pointer text-white font-ar border-[0.1px] border-white/10 text-sm bg-black/80"
+                  onClick={() =>
+                    navigate(
+                      `/${category === "movie" ? "movies" : "series"}/${idOfMovieOrSeries}${lang === "ar" ? "?l=ar" : ""}`,
+                    )
+                  }
+                >
                   {getTextByLang(lang, "فتح", "Open")}
                 </button>
-                <button className="lg:w-[130px] md:w-[130px] sm:w-[110px] w-[80px] cursor-pointer rounded-lg bg-rose-600/45 hover:bg-rose-600/80 h-10/12 transition-all duration-150 text-white font-ar text-sm">
-                  {getTextByLang(lang, "أعجبني", "Like")}
+                <button
+                  className="px-3 cursor-pointer rounded-lg bg-rose-600/45 max-w-fit hover:bg-rose-600/80 h-10/12 transition-all duration-150 text-white font-ar text-sm"
+                  onClick={() => {
+                    const storedLikedMedia = JSON.parse(
+                      localStorage.getItem("likedMedia"),
+                    );
+                    const currentMediaItem =
+                      data?.results[currentTrendingIndex];
+                    if (!isLiked) {
+                      console.log("not liked but now liked");
+
+                      storedLikedMedia.push(currentMediaItem);
+                      localStorage.setItem(
+                        "likedMedia",
+                        JSON.stringify(storedLikedMedia),
+                      );
+                      // setRetryCount(retryCount + 1);
+                      setIsLiked(true);
+                    } else {
+                      // currentMediaItem.liked = false;
+                      // console.log("in not like");
+                      console.log("liked but now not liked");
+
+                      const newFilteredMedia = storedLikedMedia.filter(
+                        (media) => media.id !== currentMediaItem.id,
+                      );
+
+                      localStorage.setItem(
+                        "likedMedia",
+                        JSON.stringify(newFilteredMedia),
+                      );
+                      // setRetryCount(retryCount + 1);
+                      setIsLiked(false);
+                    }
+                  }}
+                >
+                  {isLiked ? (
+                    <div className="flex max-w-fit flex-row items-center justify-center gap-2">
+                      <HeartOff size={18} />{" "}
+                      {getTextByLang(lang, "لم يعجبني", "Un Like")}
+                    </div>
+                  ) : (
+                    <div className="flex flex-row items-center justify-center gap-2">
+                      <Heart size={18} />{" "}
+                      {getTextByLang(lang, "أعجبني", "Like")}
+                    </div>
+                  )}
                 </button>
               </div>
             </div>
