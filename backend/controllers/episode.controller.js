@@ -20,7 +20,11 @@ async function episodeInfoController(req, res) {
   } catch (e) {
     return res.json({
       status: "error",
-      message: "Check series id and season number and episode numbers, " + e.message, seriesId, seasonNum, episodeNum
+      message:
+        "Check series id and season number and episode numbers, " + e.message,
+      seriesId,
+      seasonNum,
+      episodeNum,
     });
   }
 }
