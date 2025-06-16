@@ -111,7 +111,7 @@ async function getMedia(media_type, id) {
 
 async function getSeasonInfo(seriesId, seasonNumber, lang) {
   lang = lang === undefined ? "en-US" : lang;
-  
+
   const data = await fetchData(
     BASE_API_URL + `tv/${seriesId}/season/${seasonNumber}?language=${lang}`,
   );
@@ -130,6 +130,24 @@ async function getEpisodeInfo(seriesId, seasonNumber, epNum, lang) {
   return data;
 }
 
+async function getMatchedMedia(media_type, lang, genres, page = 1) {
+  lang = lang === undefined ? "en-US" : lang;
+
+  const data = await fetchData(
+    BASE_API_URL +
+      `discover/${media_type}?include_adult=false&include_video=false&with_genres=${encodeURIComponent(genres)}&language=${lang}&page=${page}`,
+  );
+
+  return data;
+}
+
+async function getKeywords(keyword_query) {
+  const data = await fetchData(
+    BASE_API_URL + `search/keyword?query=${keyword_query}`,
+  );
+
+  return data;
+}
 export {
   getTrending,
   searchMulti,
@@ -143,4 +161,6 @@ export {
   getEpisodeInfo,
   getSeiresDetails,
   getSeriesReviews,
+  getMatchedMedia,
+  getKeywords,
 };

@@ -14,6 +14,8 @@ import { seriesDetailsController } from "./controllers/series.controller.js";
 import { mediaController } from "./controllers/media.controller.js";
 import { seasonInfoController } from "./controllers/seasons.controller.js";
 import { episodeInfoController } from "./controllers/episode.controller.js";
+import { discoverMediaController } from "./controllers/discover.controller.js";
+import { keywordsController } from "./controllers/keyword.controller.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -54,6 +56,10 @@ app.get("/movies/:movie_id", movieDetailsController);
 app.get("/series/:series_id", seriesDetailsController);
 app.get("/season/:seriesId/:seasonNum", seasonInfoController);
 app.get("/episode/:seriesId/:seasonNum/:episodeNum", episodeInfoController);
+
+// discover series and movies with genres
+app.get("/discover/:mediaType", discoverMediaController);
+app.get("/keywords/:keyQuery", keywordsController);
 
 app.listen(PORT, () => {
   console.log("running on http://localhost:3000");
