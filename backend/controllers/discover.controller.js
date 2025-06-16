@@ -2,7 +2,7 @@ import { getMatchedMedia } from "../services/tmdb.service.js";
 
 async function discoverMediaController(req, res) {
   const { mediaType } = req.params;
-  const { genres, l, page } = req.query;
+  const { genres, keywords, l, page } = req.query;
 
   if (l !== "ar" && l !== "en" && l !== undefined) {
     res.status(400).json({
@@ -14,7 +14,7 @@ async function discoverMediaController(req, res) {
   }
 
   try {
-    const data = await getMatchedMedia(mediaType, l, genres, page);
+    const data = await getMatchedMedia(mediaType, l, genres, page, keywords);
     res.status(200).json(data);
   } catch (error) {
     res.status(500).json({
