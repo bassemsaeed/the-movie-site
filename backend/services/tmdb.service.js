@@ -130,12 +130,15 @@ async function getEpisodeInfo(seriesId, seasonNumber, epNum, lang) {
   return data;
 }
 
-async function getMatchedMedia(media_type, lang, genres, page = 1) {
+async function getMatchedMedia(media_type, lang, genres, page = 1, keywords) {
   lang = lang === undefined ? "en-US" : lang;
 
+  console.log( BASE_API_URL +
+      `discover/${media_type}?include_adult=false&include_video=false${genres ? `&with_genres=${encodeURIComponent(genres)}`: ""}${keywords ? `&with_keywords=${encodeURIComponent(keywords)}`: ""}&language=${lang}&page=${page}`);
+  
   const data = await fetchData(
     BASE_API_URL +
-      `discover/${media_type}?include_adult=false&include_video=false&with_genres=${encodeURIComponent(genres)}&language=${lang}&page=${page}`,
+      `discover/${media_type}?include_adult=false&include_video=false${genres ? `&with_genres=${encodeURIComponent(genres)}`: ""}${keywords ? `&with_keywords=${encodeURIComponent(keywords)}`: ""}&language=${lang}&page=${page}`,
   );
 
   return data;
