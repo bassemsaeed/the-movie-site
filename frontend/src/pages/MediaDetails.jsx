@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
-import { useLoaderData, useNavigate, useNavigation } from "react-router";
+import { data, useLoaderData, useNavigate, useNavigation } from "react-router";
 import useTheme from "../hooks/useTheme";
 import { getTextByLang } from "../utils";
 import { motion } from "framer-motion";
@@ -57,59 +57,87 @@ const Section = ({ title, children, className = "" }) => (
 
 // --- Sub-Components for Movie Page ---
 
-const MediaHeder = React.memo(({ media, lang, media_type }) => (
-  <div className="relative pt-16">
-    <div className="absolute inset-0 h-[60vh] md:h-[80vh] overflow-hidden">
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${getImageUrl(media.backdrop_path)})` }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-neutral-50 via-neutral-50/80 to-transparent dark:from-neutral-900 dark:via-neutral-900/80" />
-    </div>
-    <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 md:pt-48 pb-12">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-        <aside className="md:col-span-1 -mt-12 md:-mt-32">
-          <img
-            src={getImageUrl(media.poster_path, "w500")}
-            alt={`${media.title} Poster`}
-            className="rounded-xl shadow-2xl shadow-black/40 w-full aspect-[2/3] object-cover"
-          />
-        </aside>
-        <main className="md:col-span-2 flex flex-col justify-end">
-          <div className="text-black dark:text-white">
-            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter">
-              {media.title || media.name || media.original_name}
-            </h1>
-            {media.tagline && (
-              <p className="text-lg italic text-neutral-600 dark:text-neutral-300 mt-2 mb-6">
-                "{media.tagline}"
-              </p>
-            )}
-            <div className="mt-4">
-              <h3 className="text-xl font-bold mb-2 text-neutral-800 dark:text-neutral-100">
-                {getTextByLang(lang, "ملخص", "Overview")}
-              </h3>
-              <p className="leading-relaxed text-neutral-700 dark:text-neutral-200">
-                {media.overview || "No overview available."}
-              </p>
+const MediaHeder = React.memo(
+  ({ media, lang, media_type, loadingMedia, errLoading }) => (
+    <div className="relative pt-16">
+      <div className="absolute inset-0 h-[60vh] md:h-[80vh] overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `url(${getImageUrl(media.backdrop_path)})`,
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-neutral-50 via-neutral-50/80 to-transparent dark:from-neutral-900 dark:via-neutral-900/80" />
+      </div>
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 md:pt-48 pb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+          <aside className="md:col-span-1 -mt-12 md:-mt-32">
+            <img
+              src={getImageUrl(media.poster_path, "w500")}
+              alt={`${media.title} Poster`}
+              className="rounded-xl shadow-2xl shadow-black/40 w-full aspect-[2/3] object-cover"
+            />
+          </aside>
+          <main className="md:col-span-2 flex flex-col justify-end">
+            <div className="text-black dark:text-white">
+              {loadingMedia ? (
+                <div className="w-10 h-10 border-4 mask-conic-from-75% mask-conic-to-75% border-rose-500 animate-spin rounded-full"></div>
+              ) : errLoading ? (
+                <div className="dark:text-white font-ar text-[15px]">
+                  {getTextByLang(
+                    lang,
+                    "لقد حدث خطأ",
+                    "An unexpected error has happend",
+                  )}
+                </div>
+              ) : (
+                <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter">
+                  {media.title || media.name || media.original_name}
+                </h1>
+              )}
+              {media.tagline && (
+                <p className="text-lg italic text-neutral-600 dark:text-neutral-300 mt-2 mb-6">
+                  "{media.tagline}"
+                </p>
+              )}
+              <div className="mt-4">
+                <h3 className="text-xl font-bold mb-2 text-neutral-800 dark:text-neutral-100">
+                  {getTextByLang(lang, "ملخص", "Overview")}
+                </h3>
+                {loadingMedia ? (
+                  <div className="w-10 h-10 border-4 mask-conic-from-75% mask-conic-to-75% border-rose-500 animate-spin rounded-full"></div>
+                ) : errLoading ? (
+                  <div className="dark:text-white font-ar text-[15px]">
+                    {getTextByLang(
+                      lang,
+                      "لقد حدث خطأ",
+                      "An unexpected error has happend",
+                    )}
+                  </div>
+                ) : (
+                  <p className="leading-relaxed text-neutral-700 dark:text-neutral-200">
+                    {media.overview || "No overview available."}
+                  </p>
+                )}
+              </div>
+              <MediaStats media={media} media_type={media_type} />
+              <div className="flex flex-wrap items-center gap-3 mt-6">
+                {media.genres?.map((genre) => (
+                  <span
+                    key={genre.id}
+                    className="rounded-full text-xs px-3 py-1.5 font-semibold bg-sky-100 text-sky-800 dark:bg-sky-500/10 dark:text-sky-300"
+                  >
+                    {genre.name}
+                  </span>
+                ))}
+              </div>
             </div>
-            <MediaStats media={media} media_type={media_type} />
-            <div className="flex flex-wrap items-center gap-3 mt-6">
-              {media.genres?.map((genre) => (
-                <span
-                  key={genre.id}
-                  className="rounded-full text-xs px-3 py-1.5 font-semibold bg-sky-100 text-sky-800 dark:bg-sky-500/10 dark:text-sky-300"
-                >
-                  {genre.name}
-                </span>
-              ))}
-            </div>
-          </div>
-        </main>
+          </main>
+        </div>
       </div>
     </div>
-  </div>
-));
+  ),
+);
 
 const MediaStats = React.memo(({ media, media_type }) => {
   const { lang } = useTheme();
@@ -430,7 +458,10 @@ const Movie = () => {
   const { results, media_type } = useLoaderData();
   const { lang } = useTheme();
 
-  const mediaDetails = results?.[0]?.value?.data || null;
+  const details = results?.[0]?.value?.data || null;
+  const [mediaDetails, setMediaDetails] = useState(details);
+  const [loadingMediaDetails, setLoadingMediaDetails] = useState(false);
+  const [errLoadingMediaDetails, setErrLoadingMediaDetails] = useState(null);
   const reviewsData = results?.[1]?.value?.data || { results: [] };
   const recommendedData = results?.[2]?.value?.data || { results: [] };
 
@@ -467,7 +498,7 @@ const Movie = () => {
     setShowSeasonsDropDown(false);
     setShowEpisodesDropDown(false);
     setCurrentEpisodeNum(null);
-
+    setMediaDetails(details);
     if (mainElRef.current) {
       mainElRef.current.scroll({
         top: 0,
@@ -475,7 +506,28 @@ const Movie = () => {
         behavior: "smooth",
       });
     }
-  }, [mediaDetails?.id, mainElRef]);
+  }, [mediaDetails?.id, mainElRef, details]);
+
+  useEffect(() => {
+    (async () => {
+      console.log("in this");
+
+      try {
+        setLoadingMediaDetails(true);
+        setErrLoadingMediaDetails(null);
+        const { data } = await axios.get(
+          `http://localhost:3000/${media_type === "movie" ? "movies" : "series"}/${details.id}?l=${lang}`,
+        );
+        console.log("after this ", data);
+
+        setMediaDetails(data);
+      } catch (error) {
+        setErrLoadingMediaDetails(error);
+      } finally {
+        setLoadingMediaDetails(false);
+      }
+    })();
+  }, [lang, media_type, details?.id]);
 
   useEffect(() => {
     if (!currentChosenSeason || !mediaDetails?.id) {
@@ -563,8 +615,14 @@ const Movie = () => {
           <div className="w-[150px] bg-rose-500 animate-slide h-full"></div>
         </div>
       ) : null}
-      <ThemeHeader isMedia={true} />
-      <MediaHeder media={mediaDetails} media_type={media_type} lang={lang} />
+      <ThemeHeader />
+      <MediaHeder
+        media={mediaDetails}
+        loadingMedia={loadingMediaDetails}
+        errLoading={errLoadingMediaDetails}
+        media_type={media_type}
+        lang={lang}
+      />
 
       {seasons ? (
         <div className="w-[95%] h-fit mx-auto flex flex-col gap-3">
@@ -582,7 +640,7 @@ const Movie = () => {
                 }
               }}
             >
-              <h3>{currentChosenSeason?.name}</h3>
+              <h3>{getTextByLang(lang, "المواسم", "Seasons")}</h3>
               {showSeasonsDropDown ? (
                 <ArrowDown className="transition-all duration-150 ease-in-out rotate-180" />
               ) : (
@@ -632,7 +690,7 @@ const Movie = () => {
                 <div className="w-5 h-5 rounded-full border-2 dark:border-white border-t-rose-500 dark:border-t-rose-500 animate-spin"></div>
               ) : currentSeasonIfo?.episodes &&
                 currentSeasonIfo?.episodes.length > 0 ? (
-                <h2>{currentSeasonIfo?.episodes[0].name}</h2>
+                <h2>{getTextByLang(lang, "الحلقات", "Episodes")}</h2>
               ) : null}
               {showEpisodesDropDown ? (
                 <ArrowDown className="transition-all duration-150 ease-in-out rotate-180" />

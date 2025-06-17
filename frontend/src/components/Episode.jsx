@@ -97,8 +97,8 @@ const Episode = React.memo(
               {episodeData?.overview
                 ? episodeData.overview
                 : lang === "ar"
-                  ? "لا يوجد وصف للحلقه."
-                  : "No overview available."}
+                  ? "لا يوجد وصف للحلقه باللغة العربية."
+                  : "No overview available in english."}
             </p>
           </div>
 

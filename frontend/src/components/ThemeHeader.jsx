@@ -5,7 +5,7 @@ import { Link } from "react-router";
 import useTheme from "../hooks/useTheme";
 import { Sun, MoonStar, Menu } from "lucide-react";
 
-export const ThemeHeader = ({ isMedia }) => {
+export const ThemeHeader = () => {
   const { lang, toggleTheme, setLanguage, theme } = useTheme();
   const [showNavSideBar, setShowNavSideBar] = useState(false);
 
@@ -54,9 +54,6 @@ export const ThemeHeader = ({ isMedia }) => {
               : " text-black dark:text-white ")
           }
           onClick={() => {
-            isMedia
-              ? (window.location.href = window.location.href.split("?")[0])
-              : null;
             setLanguage("en");
           }}
         >
@@ -71,10 +68,6 @@ export const ThemeHeader = ({ isMedia }) => {
               : " text-neutral-400 dark:text-neutral-500")
           }
           onClick={() => {
-            isMedia
-              ? (window.location.href =
-                  window.location.href.split("?")[0] + "?l=ar")
-              : null;
             setLanguage("ar");
           }}
         >
