@@ -18,28 +18,16 @@ const formatRuntime = (minutes, lang) => {
 
 const Episode = React.memo(
   ({ seriesId, seasonNum, episodeNum, retryCount }) => {
-    console.log(seriesId, seasonNum, episodeNum);
-
     const { lang } = useTheme();
     const [loadingEpisodeData, setLoadingEpisodeData] = useState(false);
     const [episodeData, setEpisodeData] = useState(null);
     const [errLoadingEpisodeData, setErrLoadingEpisodeData] = useState(null);
 
     const getEpisodeData = useCallback(async () => {
-      console.log(
-        `http://localhost:3000/episode/${seriesId}/${seasonNum}/${episodeNum}${lang === "ar" ? "?l=ar" : ""}`,
-      );
-
       try {
         setLoadingEpisodeData(true);
         const { data } = await axios.get(
-          `http://localhost:3000/episode/${seriesId}/${seasonNum}/${episodeNum}${lang === "ar" ? "?l=ar" : ""}`,
-        );
-
-        console.log(
-          data,
-          data.status === "error",
-          `http://localhost:3000/episode/${seriesId}/${seasonNum}/${episodeNum}${lang === "ar" ? "?l=ar" : ""}`,
+          `http://localhost:3000/episode/${seriesId}/${seasonNum}/${episodeNum}${lang === "ar" ? "?l=ar" : ""}`
         );
 
         if (data.status === "error") {
@@ -114,7 +102,7 @@ const Episode = React.memo(
         </div>
       </div>
     );
-  },
+  }
 );
 
 export default Episode;
