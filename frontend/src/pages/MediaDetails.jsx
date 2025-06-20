@@ -1,31 +1,148 @@
-import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
-import { data, useLoaderData, useNavigate, useNavigation } from "react-router";
+import { motion } from "framer-motion";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLoaderData, useNavigate, useNavigation } from "react-router";
 import useTheme from "../hooks/useTheme";
 import { getTextByLang } from "../utils";
-import { motion } from "framer-motion";
-
-import { ThemeHeader } from "../components/ThemeHeader";
+import axios from "axios";
 import {
-  Clock,
-  Star,
-  Calendar,
-  Film,
-  User,
-  Share2,
-  Heart,
   ArrowDown,
   BadgeInfo,
-  HeartOff,
   BookmarkMinus,
   BookmarkPlus,
+  Calendar,
+  Clock,
+  Film,
+  Heart,
+  HeartOff,
+  Share2,
+  Star,
+  User,
 } from "lucide-react";
-import axios from "axios";
 import Episode from "../components/Episode";
+import { ThemeHeader } from "../components/ThemeHeader";
 
-// --- Constants ---
 const BASE_IMAGE_URL = "https://image.tmdb.org/t/p/";
 
-// --- Helper Functions & Components ---
+const getImageUrl = (
+  path,
+  size = "original",
+  fallback = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAWlBMVEXv8fNod4f19vhkdIRcbX52g5KPmqX29/iYoq3l6OuCj5vd4eTr7fBfcIFaa33M0dbBx82SnKe7wchtfIt8iZejq7TU2N2Ik6CwuL/Gy9Gqsrqbpa/P1NmhqrNz0egRAAADBklEQVR4nO3c63KqMBRAYUiwwUvEete27/+ax1tVAqhwEtnprO+XM62Oyw2CGTFJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJe6Mb5vqL7jjsws/wgln/dddzBZZjocuxj2HaiWNg1JL/oO3GVBA9PUzvvdF80q7AgPQ/zot1DlOnThyFBIIYWvFtrMK3mFdj30aWzFFWZjr+/qE4mFXh+YwrehsDMK34bCzmIoVEad1nC6PbD8QpXMNwOdDvKi2xMUX2jm2h7/onU2WHcZo/RCld8WN3TWZR1CeKH6LK1tTGftE2UXqpmzPGXbLwnKLkzcT8X6s/UQRReqWWX9LWs9RNGF5qOysmFb74miC9XCDUzt6k8VJtXC9jsihW9Tu5Uuq/vhvlKokuGjc1bRhWZVLdw5MWq8mU6zfNL4wKILk/W0spW6dyvOZ61p4wKd7EIzcoZot+UQVVxeA62bEmUXJuPyIV8PnDsVtxXtpikKL1S7++1U6/IZzV1g8xSFFx4i9HWMdjksNZQCGxOlFyZq8jW1VmubpZV90PngUZ8ovvDYuNt//Wy/1ZPAhsQICo+rUMa4T70msP7tJorCun8vKofKhilGWlg7wfopxlnYMMHaKUZZ2DjBuinGWPgwsDLFCAufBLqJ8RU+DXQ21OgKXwgsTzG2wpcCj1O8nsJGVvjgMNE0xbgKX5zgeYqXxKgKX57geYrnDTWmwhYTvJtiRIUtA3/fbuIpbB14mWI0hR0Cz1OMpbBT4CkxiaOwY+BpQ42isNVhwk283hJc2HmC5Va5hf8xwTgK/UxQcKGvQLGF3gKlFvoLFFroMVBmoc9AkYWeDhNyC1Xh9aJLeYV+Jyiw0Os+KLHQe6C0Qv+BwgoDBMoqDBEoqtCECJRUOPz2e5gQV2jnYa7qllOYBvr5CEGFgVBIIYXPmJ/ghZueZ+hexOWd+w3q9ycuwg5R2377DsapDflbX7rTFah+TbajQSij/aT/wNNF26FUvoELAAAAAAAAAAAAAAAAAAAAAAAAAAAA4G/4B9L3P1vg3y4/AAAAAElFTkSuQmCC",
+) => {
+  return path ? `${BASE_IMAGE_URL}${size}${path}` : fallback;
+};
+
+const ActorCard = React.memo(({ actor }) => {
+  return (
+    <div className="w-40 flex-shrink-0 snap-start select-none">
+      <div className="group flex flex-col gap-2">
+        <div className="aspect-[2/3] w-full bg-neutral-200 dark:bg-neutral-800 rounded-lg overflow-hidden relative">
+          {actor.profile_path ? (
+            <img
+              src={getImageUrl(actor.profile_path, "w500")}
+              alt={actor.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 pointer-events-none"
+              loading="lazy"
+              draggable="false"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-neutral-300 dark:bg-neutral-700">
+              <User className="w-12 h-12 text-neutral-500" />
+            </div>
+          )}
+        </div>
+        <div className="pr-2">
+          <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-100 truncate">
+            {actor.name}
+          </h3>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
+            {actor.character}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+const CreditsSkeleton = () => (
+  <div className="flex space-x-4 overflow-hidden -mx-4 px-4 animate-pulse">
+    {Array.from({ length: 6 }).map((_, i) => (
+      <div key={i} className="w-40 flex-shrink-0">
+        <div className="flex flex-col gap-2">
+          <div className="aspect-[2/3] w-full bg-neutral-300 dark:bg-neutral-700 rounded-lg"></div>
+          <div className="h-4 bg-neutral-300 dark:bg-neutral-700 rounded w-3/4"></div>
+          <div className="h-3 bg-neutral-300 dark:bg-neutral-700 rounded w-1/2"></div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
+const CreditsSection = React.memo(({ credits, loading, error, lang }) => {
+  const scrollContainerRef = useRef(null);
+
+  if (error) return null;
+  if (!loading && (!credits || credits.cast.length === 0)) return null;
+
+  const keyJobs = [
+    "Director",
+    "Screenplay",
+    "Writer",
+    "Series Composition",
+    "Original Music Composer",
+    "Novel",
+    "Series Director",
+  ];
+  const keyCrew =
+    credits?.crew.filter((member) => keyJobs.includes(member.job)) || [];
+
+  const uniqueCrew = Array.from(
+    new Map(keyCrew.map((item) => [item["id"], item])).values(),
+  );
+
+  return (
+    <Section title={getTextByLang(lang, "فريق العمل", "Cast & Crew")}>
+      <div className="flex flex-col gap-8">
+        <div>
+          <h3 className="text-xl font-bold text-neutral-700 dark:text-neutral-200 mb-4">
+            {getTextByLang(lang, "أبرز الممثلين", "Top Billed Cast")}
+          </h3>
+          {loading ? (
+            <CreditsSkeleton />
+          ) : (
+            <div
+              ref={scrollContainerRef}
+              className="flex hidden-scrollbar space-x-4 overflow-x-auto scroll-snap-x-mandatory scroll-smooth hide-scrollbar -mx-4 px-4"
+            >
+              {credits.cast.map((actor) => (
+                <ActorCard key={actor.credit_id || actor.id} actor={actor} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {uniqueCrew.length > 0 && (
+          <div>
+            <h3 className="text-xl font-bold text-neutral-700 dark:text-neutral-200 mb-4">
+              {getTextByLang(lang, "الطاقم الرئيسي", "Key Crew")}
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-6">
+              {uniqueCrew.map((member) => (
+                <div key={member.credit_id}>
+                  <p className="font-semibold text-neutral-800 dark:text-white">
+                    {member.name}
+                  </p>
+                  <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                    {member.job}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </Section>
+  );
+});
 
 const formatRuntime = (minutes, lang) => {
   if (!minutes) return "N/A";
@@ -34,14 +151,6 @@ const formatRuntime = (minutes, lang) => {
 
   if (hours === 0) return lang === "ar" ? `${mins}دقيقه` : `${mins}m`;
   return lang === "ar" ? `${hours} ساعه ${mins} دقيقه` : `${hours}h ${mins}m`;
-};
-
-const getImageUrl = (
-  path,
-  size = "original",
-  fallback = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAWlBMVEXv8fNod4f19vhkdIRcbX52g5KPmqX29/iYoq3l6OuCj5vd4eTr7fBfcIFaa33M0dbBx82SnKe7wchtfIt8iZejq7TU2N2Ik6CwuL/Gy9Gqsrqbpa/P1NmhqrNz0egRAAADBklEQVR4nO3c63KqMBRAYUiwwUvEete27/+ax1tVAqhwEtnprO+XM62Oyw2CGTFJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJe6Mb5vqL7jjsws/wgln/dddzBZZjocuxj2HaiWNg1JL/oO3GVBA9PUzvvdF80q7AgPQ/zot1DlOnThyFBIIYWvFtrMK3mFdj30aWzFFWZjr+/qE4mFXh+YwrehsDMK34bCzmIoVEad1nC6PbD8QpXMNwOdDvKi2xMUX2jm2h7/onU2WHcZo/RCld8WN3TWZR1CeKH6LK1tTGftE2UXqpmzPGXbLwnKLkzcT8X6s/UQRReqWWX9LWs9RNGF5qOysmFb74miC9XCDUzt6k8VJtXC9jsihW9Tu5Uuq/vhvlKokuGjc1bRhWZVLdw5MWq8mU6zfNL4wKILk/W0spW6dyvOZ61p4wKd7EIzcoZot+UQVVxeA62bEmUXJuPyIV8PnDsVtxXtpikKL1S7++1U6/IZzV1g8xSFFx4i9HWMdjksNZQCGxOlFyZq8jW1VmubpZV90PngUZ8ovvDYuNt//Wy/1ZPAhsQICo+rUMa4T70msP7tJorCun8vKofKhilGWlg7wfopxlnYMMHaKUZZ2DjBuinGWPgwsDLFCAufBLqJ8RU+DXQ21OgKXwgsTzG2wpcCj1O8nsJGVvjgMNE0xbgKX5zgeYqXxKgKX57geYrnDTWmwhYTvJtiRIUtA3/fbuIpbB14mWI0hR0Cz1OMpbBT4CkxiaOwY+BpQ42isNVhwk283hJc2HmC5Va5hf8xwTgK/UxQcKGvQLGF3gKlFvoLFFroMVBmoc9AkYWeDhNyC1Xh9aJLeYV+Jyiw0Os+KLHQe6C0Qv+BwgoDBMoqDBEoqtCECJRUOPz2e5gQV2jnYa7qllOYBvr5CEGFgVBIIYXPmJ/ghZueZ+hexOWd+w3q9ycuwg5R2377DsapDflbX7rTFah+TbajQSij/aT/wNNF26FUvoELAAAAAAAAAAAAAAAAAAAAAAAAAAAA4G/4B9L3P1vg3y4/AAAAAElFTkSuQmCC"
-) => {
-  return path ? `${BASE_IMAGE_URL}${size}${path}` : fallback;
 };
 
 const Section = ({ title, children, className = "" }) => (
@@ -55,10 +164,8 @@ const Section = ({ title, children, className = "" }) => (
   </div>
 );
 
-// --- Sub-Components for Movie Page ---
-
 const MediaHeder = React.memo(
-  ({ media, lang, media_type, loadingMedia, errLoading }) => (
+  ({ media, lang, media_type, loadingMedia, errLoading, mediaKeywords }) => (
     <div className="relative pt-16">
       <div className="absolute inset-0 h-[60vh] md:h-[80vh] overflow-hidden">
         <div
@@ -72,11 +179,17 @@ const MediaHeder = React.memo(
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 md:pt-48 pb-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
           <aside className="md:col-span-1 -mt-12 md:-mt-32">
-           {loadingMedia ? <div className="rounded-xl shadow-2xl shadow-black/40 w-full aspect-[2/3] bg-gray-600/30 animate-pulse"></div>:<img
-              src={getImageUrl(media.poster_path, "w500")}
-              alt={`${media.title} Poster`}
-              className="rounded-xl shadow-2xl shadow-black/40 w-full aspect-[2/3] object-cover"
-            />}
+            {loadingMedia ? (
+              <div className="rounded-xl shadow-2xl shadow-black/40 w-full aspect-[2/3] bg-gray-600/30 animate-pulse flex justify-center items-center">
+                <div className="w-10 h-10 border-4 mask-conic-from-75% mask-conic-to-75% border-rose-500 animate-spin rounded-full"></div>
+              </div>
+            ) : (
+              <img
+                src={getImageUrl(media.poster_path, "w500")}
+                alt={`${media.title} Poster`}
+                className="rounded-xl shadow-2xl shadow-black/40 w-full aspect-[2/3] object-cover"
+              />
+            )}
           </aside>
           <main className="md:col-span-2 flex flex-col justify-end">
             <div className="text-black dark:text-white">
@@ -87,7 +200,7 @@ const MediaHeder = React.memo(
                   {getTextByLang(
                     lang,
                     "لقد حدث خطأ",
-                    "An unexpected error has happend"
+                    "An unexpected error has happend",
                   )}
                 </div>
               ) : (
@@ -111,12 +224,16 @@ const MediaHeder = React.memo(
                     {getTextByLang(
                       lang,
                       "لقد حدث خطأ",
-                      "An unexpected error has happend"
+                      "An unexpected error has happend",
                     )}
                   </div>
                 ) : (
                   <p className="leading-relaxed text-neutral-700 dark:text-neutral-200">
-                    {media.overview || "No overview available."}
+                    {getTextByLang(
+                      lang,
+                      media.overview || "لايوجد وصف متاح باللغة العربية.",
+                      media.overview || "No overview available in english.",
+                    )}
                   </p>
                 )}
               </div>
@@ -131,12 +248,21 @@ const MediaHeder = React.memo(
                   </span>
                 ))}
               </div>
+
+              <div className="mt-8">
+                <ActionButtons
+                  lang={lang}
+                  media={media}
+                  media_type={media_type}
+                  mediaKeywords={mediaKeywords}
+                />
+              </div>
             </div>
           </main>
         </div>
       </div>
     </div>
-  )
+  ),
 );
 
 const MediaStats = React.memo(({ media, media_type }) => {
@@ -147,12 +273,16 @@ const MediaStats = React.memo(({ media, media_type }) => {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
         <StatPill
           icon={<Star color="gold" />}
-          label="RATING"
+          label={getTextByLang(lang, "التقييم", "RATING")}
           value={`${media.vote_average?.toFixed(1) || "N/A"} / 10`}
         />
         <StatPill
           icon={<Clock />}
-          label={media_type === "movie" ? "RUNTIME" : "Seasons"}
+          label={getTextByLang(
+            lang,
+            media_type === "movie" ? "مدة الفيلم" : "المواسم",
+            media_type === "movie" ? "RUNTIME" : "SEASONS",
+          )}
           value={
             media_type === "movie"
               ? formatRuntime(media.runtime, lang)
@@ -161,7 +291,7 @@ const MediaStats = React.memo(({ media, media_type }) => {
         />
         <StatPill
           icon={<Calendar color="orange" />}
-          label="YEAR"
+          label={getTextByLang(lang, "السنة", "YEAR")}
           value={
             media.release_date
               ? new Date(media.release_date).getFullYear()
@@ -173,12 +303,12 @@ const MediaStats = React.memo(({ media, media_type }) => {
 
         <StatPill
           icon={<BadgeInfo />}
-          label={"Category"}
+          label={getTextByLang(lang, "النوع", "Category")}
           value={media_type === "tv" ? "Series" : "Movie"}
         />
         <StatPill
           icon={<Film color="red" />}
-          label="STATUS"
+          label={getTextByLang(lang, "الحالة", "STATUS")}
           value={media.status || "N/A"}
         />
       </div>
@@ -202,18 +332,17 @@ const StatPill = ({ icon, label, value }) => (
   </div>
 );
 
-// RE-ADDED THIS COMPONENT
-const ActionButtons = ({ lang, media, media_type }) => {
+const ActionButtons = ({ lang, media, media_type, mediaKeywords }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isSavedInWatchLater, setIsSavedInWatchLater] = useState(false);
 
   useLayoutEffect(() => {
-    const liked = JSON.parse(localStorage.getItem("likedMedia"))?.find(
-      (item) => item?.id === media?.id
+    const liked = JSON.parse(localStorage.getItem("likedMedia") || "[]")?.find(
+      (item) => item?.id === media?.id,
     );
 
     const IS_SAVED_IN_WATCHLATER = JSON.parse(
-      localStorage.getItem("watchLaterMedia")
+      localStorage.getItem("watchLaterMedia") || "[]",
     ).find((item) => item?.id === media?.id);
 
     if (IS_SAVED_IN_WATCHLATER) {
@@ -222,32 +351,40 @@ const ActionButtons = ({ lang, media, media_type }) => {
       setIsSavedInWatchLater(false);
     }
 
-    setIsLiked(liked);
+    setIsLiked(Boolean(liked));
   }, [media.id]);
+
   return (
-    <div className="max-w-7xl z-50 mx-auto px-4 sm:px-6 lg:px-8 flex gap-3 lg:mt-[70px] md:mt-[110px] sm:mt-[250px] mt-[260px] mb-8">
+    <div className="flex flex-wrap gap-3">
       <button
-        className="flex items-center ju stify-center gap-2 outline-none select-none py-2 px-5 rounded-lg bg-rose-500 hover:bg-rose-600 duration-150 font-semibold text-white cursor-pointer shadow-lg shadow-rose-500/20"
+        className="flex items-center justify-center gap-2 outline-none select-none py-2 px-5 rounded-lg bg-rose-500 hover:bg-rose-600 duration-150 font-semibold text-white cursor-pointer shadow-lg shadow-rose-500/20"
         onClick={() => {
-          const storedLikedMedia = JSON.parse(
-            localStorage.getItem("likedMedia")
-          );
+          const storedLikedMedia =
+            JSON.parse(localStorage.getItem("likedMedia")) || [];
 
           if (isLiked) {
-            // STEPS TO REMOVE FROM LIKED LIST
             const newLikedList = storedLikedMedia.filter(
-              (item) => item.id !== media.id
+              (item) => item.id !== media.id,
             );
-
             localStorage.setItem("likedMedia", JSON.stringify(newLikedList));
             setIsLiked(false);
           } else {
-            // STEPS TO ADD ITEM TO LIKE LIST
             media.media_type = media_type;
+            if (media_type === "movie") {
+              media.mediaKeywords =
+                mediaKeywords?.keywords && mediaKeywords?.keywords.length > 6
+                  ? mediaKeywords?.keywords?.slice(0, 6)
+                  : mediaKeywords?.keywords;
+            } else {
+              media.mediaKeywords =
+                mediaKeywords?.results && mediaKeywords?.results.length > 6
+                  ? mediaKeywords?.results?.slice(0, 6)
+                  : mediaKeywords?.results;
+            }
             storedLikedMedia.push(media);
             localStorage.setItem(
               "likedMedia",
-              JSON.stringify(storedLikedMedia)
+              JSON.stringify(storedLikedMedia),
             );
             setIsLiked(true);
           }
@@ -266,31 +403,35 @@ const ActionButtons = ({ lang, media, media_type }) => {
       <button
         className="flex items-center justify-center gap-2 outline-none select-none py-2 px-5 rounded-lg bg-neutral-700 hover:bg-neutral-800 dark:bg-neutral-800 dark:hover:bg-neutral-700 duration-150 font-semibold text-white cursor-pointer shadow-lg shadow-black/10"
         onClick={() => {
-          const WATCHLATER_LIST = JSON.parse(
-            localStorage.getItem("watchLaterMedia")
-          );
+          const WATCHLATER_LIST =
+            JSON.parse(localStorage.getItem("watchLaterMedia")) || [];
 
           if (isSavedInWatchLater) {
-            // steps to remove the item
             const UPDATED_WATCHLATER_LIST = WATCHLATER_LIST.filter(
-              (item) => item?.id !== media?.id
+              (item) => item?.id !== media?.id,
             );
-
             localStorage.setItem(
               "watchLaterMedia",
-              JSON.stringify(UPDATED_WATCHLATER_LIST)
+              JSON.stringify(UPDATED_WATCHLATER_LIST),
             );
-
             setIsSavedInWatchLater(false);
           } else {
-            // steps to add
+            if (media_type === "movie") {
+              media.mediaKeywords =
+                mediaKeywords?.keywords && mediaKeywords?.keywords.length > 6
+                  ? mediaKeywords?.keywords?.slice(0, 6)
+                  : mediaKeywords?.keywords;
+            } else {
+              media.mediaKeywords =
+                mediaKeywords?.results && mediaKeywords?.results.length > 6
+                  ? mediaKeywords?.results?.slice(0, 6)
+                  : mediaKeywords?.results;
+            }
             WATCHLATER_LIST.push(media);
-            media.media_type = media_type;
             localStorage.setItem(
               "watchLaterMedia",
-              JSON.stringify(WATCHLATER_LIST)
+              JSON.stringify(WATCHLATER_LIST),
             );
-
             setIsSavedInWatchLater(true);
           }
         }}
@@ -326,7 +467,7 @@ const MovieCard = ({ movie }) => {
           className="aspect-[2/3] w-full bg-neutral-200 dark:bg-neutral-800 rounded-lg overflow-hidden relative"
           onClick={() => {
             navigate(
-              `/${movie.media_type === "movie" ? "movies" : "series"}/${movie.id}${lang === "ar" ? "?l=ar" : ""}`
+              `/${movie.media_type === "movie" ? "movies" : "series"}/${movie.id}${lang === "ar" ? "?l=ar" : ""}`,
             );
           }}
         >
@@ -452,25 +593,36 @@ const ReviewCard = ({ review }) => (
   </article>
 );
 
-// --- Main Movie Component ---
 const Movie = () => {
   const { results, media_type } = useLoaderData();
   const { lang } = useTheme();
 
   const details = results?.[0]?.value?.data || null;
   const [mediaDetails, setMediaDetails] = useState(details);
-  const [loadingMediaDetails, setLoadingMediaDetails] = useState(false);
+  const [loadingMediaDetails, setLoadingMediaDetails] = useState(!details);
   const [errLoadingMediaDetails, setErrLoadingMediaDetails] = useState(null);
+
   const reviewsData = results?.[1]?.value?.data || { results: [] };
-  const recommended = results?.[2]?.value?.data || { results: [] };
+
+  const recommended = results?.[2]?.value?.data || null;
   const [recommendedData, setRecommendedData] = useState(recommended);
 
+  // NEW: State for credits
+  const [creditsData, setCreditsData] = useState(null);
+  const [loadingCredits, setLoadingCredits] = useState(true);
+  const [errorCredits, setErrorCredits] = useState(null);
+
+  const mediaKeywords = results?.[4]?.value?.data || null;
+
+  // ... (rest of the state declarations remain the same)
   const seasons =
     media_type === "tv" && mediaDetails?.seasons?.length > 0
       ? mediaDetails.seasons.filter((s) => s.episode_count > 0)
       : null;
 
   const mainElRef = useRef(null);
+  const seasonsDropdownRef = useRef(null);
+  const episodesDropdownRef = useRef(null);
 
   const [currentChosenSeasonIndex, setCurrentChosenSeasonIndex] = useState(0);
   const currentChosenSeason = seasons
@@ -488,12 +640,30 @@ const Movie = () => {
   const navigation = useNavigation();
   const isNavigating = Boolean(navigation.location);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        seasonsDropdownRef.current &&
+        !seasonsDropdownRef.current.contains(event.target)
+      ) {
+        setShowSeasonsDropDown(false);
+      }
+      if (
+        episodesDropdownRef.current &&
+        !episodesDropdownRef.current.contains(event.target)
+      ) {
+        setShowEpisodesDropDown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   useLayoutEffect(() => {
-    // When we navigate to a new movie/tv show, reset the state.
-
     setCurrentChosenSeasonIndex(0);
-
-    // reset UI state before renders
     setShowSeasonsDropDown(false);
     setShowEpisodesDropDown(false);
     setCurrentEpisodeNum(null);
@@ -506,38 +676,65 @@ const Movie = () => {
         behavior: "smooth",
       });
     }
-  }, [mediaDetails?.id, mainElRef, details]);
+  }, [details?.id, mainElRef, details, recommended]);
 
   useEffect(() => {
+    if (!details?.id) return;
+
     (async () => {
       try {
+        // ... (url history replacement remains the same)
         const newUrl = new URL(window.location.href);
-        console.log(newUrl);
-
         if (lang === "ar") newUrl.searchParams.set("l", "ar");
         else newUrl.searchParams.delete("l");
-
         history.replaceState(null, "", newUrl.href);
 
+        // Set all loading states to true
         setLoadingMediaDetails(true);
+        setLoadingCredits(true);
+        setErrorCredits(null);
         setErrLoadingMediaDetails(null);
+
+        const mediaTypeEndpoint = media_type === "movie" ? "movies" : "series";
+
         const results = await Promise.allSettled([
           axios.get(
-            `http://localhost:3000/${media_type === "movie" ? "movies" : "series"}/${details.id}?l=${lang}`
+            `http://localhost:3000/${mediaTypeEndpoint}/${details.id}?l=${lang}`,
           ),
           axios.get(
-            `http://localhost:3000/recommended/${details.id}?k=${media_type}&l=${lang}`
+            `http://localhost:3000/recommended/${details.id}?k=${media_type}&l=${lang}`,
+          ),
+          // NEW: Fetch credits data
+          axios.get(
+            `http://localhost:3000/${media_type}/${details.id}/credits?l=${lang}`,
           ),
         ]);
 
-        if (results[0].value) setMediaDetails(results[0].value.data);
-        else setErrLoadingMediaDetails(results[0].reason);
+        // Handle Media Details
+        if (results[0].status === "fulfilled") {
+          setMediaDetails(results[0].value.data);
+        } else {
+          setErrLoadingMediaDetails(results[0].reason);
+        }
 
-        if (results[1].value) setRecommendedData(results[1].value.data);
+        // Handle Recommended
+        if (results[1].status === "fulfilled") {
+          setRecommendedData(results[1].value.data);
+        }
+
+        // Handle Credits
+        if (results[2].status === "fulfilled") {
+          setCreditsData(results[2].value.data);
+        } else {
+          setErrorCredits(results[2].reason);
+        }
       } catch (error) {
+        // General catch block, though Promise.allSettled is safer
         setErrLoadingMediaDetails(error);
+        setErrorCredits(error);
       } finally {
         setLoadingMediaDetails(false);
+        setLoadingCredits(false);
       }
     })();
   }, [lang, media_type, details?.id]);
@@ -551,29 +748,25 @@ const Movie = () => {
     const controller = new AbortController();
 
     async function getSeasonData() {
-      // Use URLSearchParams for cleaner URL construction
       const params = new URLSearchParams();
       if (lang === "ar") {
         params.append("l", "ar");
       }
-
       const url = `http://localhost:3000/season/${mediaDetails.id}/${currentChosenSeason.season_number}?${params.toString()}`;
 
       try {
         setLoadingCurrentSeasonIfo(true);
-        setErrLoadingCurrentSeasonIfo(null); // Clear previous errors on a new request
-        setCurrentSeasonIfo(null); // Clear previous data
+        setErrLoadingCurrentSeasonIfo(null);
+        setCurrentSeasonIfo(null);
 
         const { data } = await axios.get(url, {
           signal: controller.signal,
         });
 
         setCurrentSeasonIfo(data);
-
         if (data.episodes.length > 0)
           setCurrentEpisodeNum(data.episodes[0].episode_number);
       } catch (error) {
-        // Don't set an error state if the request was intentionally aborted
         if (axios.isCancel(error)) {
           return;
         }
@@ -585,7 +778,6 @@ const Movie = () => {
 
     getSeasonData();
 
-    // abort the request -> useful when users send too many requests which all trigers a re render
     return () => {
       controller.abort();
     };
@@ -599,7 +791,7 @@ const Movie = () => {
             lang,
             `حدث خطأ اثناء تحميل المعلومات. أعد المحاولة!`,
             ` Could not load movie details.\n
-          Try refreshing the page again please.`
+          Try refreshing the page again please.`,
           )}
         </p>
         <button
@@ -625,108 +817,100 @@ const Movie = () => {
         </div>
       ) : null}
       <ThemeHeader />
+
       <MediaHeder
         media={mediaDetails}
         loadingMedia={loadingMediaDetails}
         errLoading={errLoadingMediaDetails}
         media_type={media_type}
         lang={lang}
+        mediaKeywords={mediaKeywords}
       />
 
       {seasons ? (
-        <div className="w-[95%] h-fit mx-auto flex flex-col gap-3">
-          <h2 className="font-ar dark:text-white text-2xl">
+        <div className="max-w-7xl dark:text-white font-ar mx-auto px-4 sm:px-6 lg:px-8 w-full flex flex-col gap-4 my-8">
+          <h2 className="font-bold text-3xl tracking-tight text-neutral-800 dark:text-neutral-100">
             {getTextByLang(lang, "المواسم والحلقات", "Seasons & Episodes")}
           </h2>
-          <div className="w-full h-[60px] flex flex-row gap-2">
-            <div
-              className="grow h-[40px] px-4 py-3 dark:bg-white/30 font-ar text-black dark:text-white bg-black/30 cursor-pointer  items-center justify-between flex rounded-lg relative"
-              onClick={(e) => {
-                if (e.target.classList.contains("dp")) {
-                  return;
-                } else {
-                  setShowSeasonsDropDown(!showSeasonsDropDown);
-                }
-              }}
-            >
-              <h3>{getTextByLang(lang, "المواسم", "Seasons")}</h3>
-              {showSeasonsDropDown ? (
-                <ArrowDown className="transition-all duration-150 ease-in-out rotate-180" />
-              ) : (
-                <ArrowDown className="transition-all duration-150 ease-in-out" />
-              )}
-
-              {/** DROP DOWN OF ALL SEASONS */}
-              {showSeasonsDropDown ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Seasons Dropdown */}
+            <div className="relative" ref={seasonsDropdownRef}>
+              <button
+                className="w-full h-[50px] px-4 py-3 bg-neutral-100 dark:bg-neutral-800 font-semibold text-black dark:text-white cursor-pointer items-center justify-between flex rounded-lg"
+                onClick={() => setShowSeasonsDropDown(!showSeasonsDropDown)}
+              >
+                <h3>
+                  {currentChosenSeason?.name ||
+                    getTextByLang(lang, "اختر موسماً", "Select a Season")}
+                </h3>
+                <ArrowDown
+                  className={`transition-transform duration-200 ${showSeasonsDropDown ? "rotate-180" : ""}`}
+                />
+              </button>
+              {showSeasonsDropDown && (
                 <motion.div
-                  initial={{ y: -25, opacity: 0 }}
+                  initial={{ y: -10, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  className={
-                    "absolute py-2 bg-gray-200 dark:bg-neutral-800 top-[110%] w-full  h-fit max-h-[250px] overflow-auto custom-scrollbar flex flex-col z-[56] " +
-                    " right-0"
-                  }
+                  transition={{ duration: 0.2 }}
+                  className="absolute py-2 bg-neutral-200 dark:bg-neutral-800 top-[110%] w-full rounded-lg shadow-lg h-fit max-h-[250px] overflow-auto custom-scrollbar flex flex-col z-50"
                 >
                   {seasons.map((season, i) => (
                     <div
                       key={season.id}
-                      className={
-                        " w-full select-none dp hover:bg-gray-300 dark:hover:bg-zinc-600 px-4 py-3 " +
-                        (currentChosenSeasonIndex === i
-                          ? " bg-gray-300 dark:bg-zinc-600"
-                          : "")
-                      }
+                      className={`w-full select-none hover:bg-neutral-300 dark:hover:bg-zinc-700 px-4 py-3 cursor-pointer ${currentChosenSeasonIndex === i ? "bg-neutral-300 dark:bg-zinc-700 font-bold" : ""}`}
                       onClick={() => {
                         setCurrentChosenSeasonIndex(i);
+                        setShowSeasonsDropDown(false);
                       }}
                     >
                       {season.name}
                     </div>
                   ))}
                 </motion.div>
-              ) : null}
-            </div>
-            <div
-              className="grow h-[40px] px-4 py-3 dark:bg-white/30 font-ar text-black dark:text-white bg-black/30 items-center justify-between flex rounded-lg select-none relative"
-              onClick={(e) => {
-                if (e.target.classList.contains("edp")) {
-                } else {
-                  setShowEpisodesDropDown(!showEpisodesDropDown);
-                }
-              }}
-            >
-              {loadingCurrentSeasonIfo ? (
-                <div className="w-5 h-5 rounded-full border-2 dark:border-white border-t-rose-500 dark:border-t-rose-500 animate-spin"></div>
-              ) : currentSeasonIfo?.episodes &&
-                currentSeasonIfo?.episodes.length > 0 ? (
-                <h2>{getTextByLang(lang, "الحلقات", "Episodes")}</h2>
-              ) : null}
-              {showEpisodesDropDown ? (
-                <ArrowDown className="transition-all duration-150 ease-in-out rotate-180" />
-              ) : (
-                <ArrowDown className="transition-all duration-150 ease-in-out" />
               )}
-
-              {/** DROP DOWN OF ALL ESPISODES */}
-              {showEpisodesDropDown ? (
+            </div>
+            {/* Episodes Dropdown */}
+            <div
+              className="relative dark:text-white font-ar"
+              ref={episodesDropdownRef}
+            >
+              <button
+                className="w-full h-[50px] px-4 py-3 bg-neutral-100 dark:bg-neutral-800 font-semibold text-black dark:text-white cursor-pointer items-center justify-between flex rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => setShowEpisodesDropDown(!showEpisodesDropDown)}
+                disabled={
+                  loadingCurrentSeasonIfo ||
+                  !currentSeasonIfo?.episodes ||
+                  currentSeasonIfo.episodes.length === 0
+                }
+              >
+                {loadingCurrentSeasonIfo ? (
+                  <div className="w-5 h-5 rounded-full border-2 border-neutral-400 dark:border-white border-t-rose-500 dark:border-t-rose-500 animate-spin"></div>
+                ) : (
+                  <h3>
+                    {currentSeasonIfo?.episodes?.find(
+                      (e) => e.episode_number === currentEpisodeNum,
+                    )?.name ||
+                      getTextByLang(lang, "اختر حلقة", "Select an Episode")}
+                  </h3>
+                )}
+                <ArrowDown
+                  className={`transition-transform duration-200 ${showEpisodesDropDown ? "rotate-180" : ""}`}
+                />
+              </button>
+              {showEpisodesDropDown && (
                 <motion.div
-                  initial={{ y: -25, opacity: 0 }}
+                  initial={{ y: -10, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  className={
-                    "absolute py-2 bg-gray-200 custom-scrollbar dark:bg-neutral-800 top-[110%] w-full h-fit max-h-[250px] overflow-auto flex flex-col z-[56] " +
-                    " right-0"
-                  }
+                  transition={{ duration: 0.2 }}
+                  className="absolute py-2 bg-neutral-200 custom-scrollbar dark:bg-neutral-800 top-[110%] w-full h-fit max-h-[250px] overflow-auto flex flex-col z-50 rounded-lg shadow-lg"
                 >
                   {currentSeasonIfo?.episodes.map((episode) => (
                     <div
                       key={episode.id}
-                      className={
-                        "min-w-0 w-full edp select-none dp hover:bg-gray-300 dark:hover:bg-zinc-600 px-4 py-3 " +
-                        (currentEpisodeNum === episode.episode_number
-                          ? " bg-gray-300 dark:bg-zinc-600"
-                          : "")
-                      }
+                      className={`min-w-0 w-full select-none hover:bg-neutral-300 dark:hover:bg-zinc-700 px-4 py-3 cursor-pointer ${currentEpisodeNum === episode.episode_number ? "bg-neutral-300 dark:bg-zinc-700 font-bold" : ""}`}
                       onClick={() => {
                         setCurrentEpisodeNum(episode.episode_number);
+                        setShowEpisodesDropDown(false);
                         setRetryCount(retryCount + 1);
                       }}
                     >
@@ -734,23 +918,35 @@ const Movie = () => {
                     </div>
                   ))}
                 </motion.div>
-              ) : null}
+              )}
             </div>
           </div>
-          {/** EPISODE DATA */}
 
-          {currentSeasonIfo && currentEpisodeNum !== null ? (
-            <Episode
-              seriesId={mediaDetails?.id}
-              seasonNum={currentChosenSeason?.season_number}
-              episodeNum={currentEpisodeNum}
-              retryCount={retryCount}
-            />
-          ) : null}
+          {/* EPISODE DATA */}
+          <div className="mt-4">
+            {currentSeasonIfo && currentEpisodeNum !== null ? (
+              <Episode
+                seriesId={mediaDetails?.id}
+                seasonNum={currentChosenSeason?.season_number}
+                episodeNum={currentEpisodeNum}
+                retryCount={retryCount}
+              />
+            ) : null}
+          </div>
         </div>
       ) : null}
-      <ActionButtons lang={lang} media={mediaDetails} media_type={media_type} />
-      <RecommendedCarousel movies={recommendedData.results} lang={lang} />
+
+      <CreditsSection
+        credits={creditsData}
+        loading={loadingCredits}
+        error={errorCredits}
+        lang={lang}
+      />
+
+      <RecommendedCarousel
+        movies={recommendedData?.results || []}
+        lang={lang}
+      />
       <ReviewsSection reviews={reviewsData.results} lang={lang} />
     </div>
   );
