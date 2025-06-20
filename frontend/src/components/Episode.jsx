@@ -1,218 +1,108 @@
 import axios from "axios";
 import React, { useCallback, useEffect, useState } from "react";
 import useTheme from "../hooks/useTheme";
-import { Calendar, Clock, Star, User } from "lucide-react";
-import { getTextByLang } from "../utils";
+import { Star } from "lucide-react";
 
-const BASE_IMAGE_URL = "https://image.tmdb.org/t/p/";
+const PLACEHOLDER_IMAGE =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAWlBMVEXv8fNod4f19vhkdIRcbX52g5KPmqX29/iYoq3l6OuCj5vd4eTr7fBfcIFaa33M0dbBx82SnKe7wchtfIt8iZejq7TU2N2Ik6CwuL/Gy9Gqsrqbpa/P1NmhqrNz0egRAAADBklEQVR4nO3c63KqMBRAYUiwwUvEete27/+ax1tVAqhwEtnprO+XM62Oyw2CGTFJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJe6Mb5vqL7jjsws/wgln/dddzBZZjocuxj2HaiWNg1JL/oO3GVBA9PUzvvdF80q7AgPQ/zot1DlOnThyFBIIYWvFtrMK3mFdj30aWzFFWZjr+/qE4mFXh+YwrehsDMK34bCzmIoVEad1nC6PbD8QpXMNwOdDvKi2xMUX2jm2h7/onU2WHcZo/RCld8WN3TWZR1CeKH6LK1tTGftE2UXqpmzPGXbLwnKLkzcT8X6s/UQRReqWWX9LWs9RNGF5qOysmFb74miC9XCDUzt6k8VJtXC9jsihW9Tu5Uuq/vhvlKokuGjc1bRhWZVLdw5MWq8mU6zfNL4wKILk/W0spW6dyvOZ61p4wKd7EIzcoZot+UQVVxeA62bEmUXJuPyIV8PnDsVtxXtpikKL1S7++1U6/IZzV1g8xSFFx4i9HWMdjksNZQCGxOlFyZq8jW1VmubpZV90PngUZ8ovvDYuNt//Wy/1ZPAhsQICo+rUMa4T70msP7tJorCun8vKofKhilGWlg7wfopxlnYMMHaKUZZ2DjBuinGWPgwsDLFCAufBLqJ8RU+DXQ21OgKXwgsTzG2wpcCj1O8nsJGVvjgMNE0xbgKX5zgeYqXxKgKX57geYrnDTWmwhYTvJtiRIUtA3/fbuIpbB14mWI0hR0Cz1OMpbBT4CkxiaOwY+BpQ42isNVhwk283hJc2HmC5Va5hf8xwTgK/UxQcKGvQLGF3gKlFvoLFFroMVBmoc9AkYWeDhNyC1Xh9aJLeYV+Jyiw0Os+KLHQe6C0Qv+BwgoDBMoqDBEoqtCECJRUOPz2e5gQV2jnYa7qllOYBvr5CEGFgVBIIYXPmJ/ghZueZ+hexOWd+w3q9ycuwg5R2377DsapDflbX7rTFah+TbajQSij/aT/wNNF26FUvoELAAAAAAAAAAAAAAAAAAAAAAAAAAAA4G/4B9L3P1vg3y4/AAAAAElFTkSuQmCC";
 
-const getImageUrl = (path, size = "original", fallback = null) => {
-  const placeholder =
-    "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjI3IiBoZWlnaHQ9IjEyNyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiPjwvc3ZnPg==";
-  if (!path && !fallback) return placeholder;
-  return path ? `${BASE_IMAGE_URL}${size}${path}` : fallback;
-};
-
+const BASE_IMAGE_URL = "https://media.themoviedb.org/t/p/w227_and_h127_bestv2";
 const formatRuntime = (minutes, lang) => {
   if (!minutes) return "N/A";
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
 
-  if (hours === 0) return lang === "ar" ? `${mins} دقيقة` : `${mins}m`;
-  return lang === "ar" ? `${hours}س ${mins}د` : `${hours}h ${mins}m`;
+  if (hours === 0) return lang === "ar" ? `${mins}دقيقه` : `${mins}m`;
+  return lang === "ar" ? `${hours} ساعه ${mins} دقيقه` : `${hours}h ${mins}m`;
 };
-
-// Skeleton Component for Loading State
-const EpisodeSkeleton = () => (
-  <div className="w-full bg-neutral-100 dark:bg-neutral-800/50 rounded-xl p-4 md:p-6 shadow-md border border-neutral-200 dark:border-neutral-700/60 animate-pulse">
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {/* Image Skeleton */}
-      <div className="md:col-span-1 bg-neutral-300 dark:bg-neutral-700 rounded-lg aspect-video"></div>
-      {/* Content Skeleton */}
-      <div className="md:col-span-2 flex flex-col gap-4">
-        <div className="h-8 bg-neutral-300 dark:bg-neutral-700 rounded w-3/4"></div>
-        <div className="h-5 bg-neutral-300 dark:bg-neutral-700 rounded w-1/2"></div>
-        <div className="space-y-2 mt-4">
-          <div className="h-4 bg-neutral-300 dark:bg-neutral-700 rounded"></div>
-          <div className="h-4 bg-neutral-300 dark:bg-neutral-700 rounded"></div>
-          <div className="h-4 bg-neutral-300 dark:bg-neutral-700 rounded w-5/6"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-);
 
 const Episode = React.memo(
   ({ seriesId, seasonNum, episodeNum, retryCount }) => {
     const { lang } = useTheme();
-    const [loading, setLoading] = useState(true);
+    const [loadingEpisodeData, setLoadingEpisodeData] = useState(false);
     const [episodeData, setEpisodeData] = useState(null);
-    const [error, setError] = useState(null);
+    const [errLoadingEpisodeData, setErrLoadingEpisodeData] = useState(null);
 
-    const getEpisodeData = useCallback(
-      async (controller) => {
-        console.log(
-          `http://localhost:3000/episode/${seriesId}/${seasonNum}/${episodeNum}${lang === "ar" ? "?l=ar" : ""}`,
+    const getEpisodeData = useCallback(async () => {
+      try {
+        setLoadingEpisodeData(true);
+        const { data } = await axios.get(
+          `http://localhost:3000/episode/${seriesId}/${seasonNum}/${episodeNum}${lang === "ar" ? "?l=ar" : ""}`
         );
-        try {
-          setLoading(true);
-          setError(null);
-          const { data } = await axios.get(
-            `http://localhost:3000/episode/${seriesId}/${seasonNum}/${episodeNum}${lang === "ar" ? "?l=ar" : ""}`,
-            { signal: controller.signal },
-          );
 
-          if (data.status === "error") {
-            throw new Error(data.message || "Failed to load episode data.");
-          }
-          setEpisodeData(data);
-        } catch (err) {
-          if (!axios.isCancel(err)) {
-            setError(err);
-          }
-        } finally {
-          setLoading(false);
+        if (data.status === "error") {
+          setErrLoadingEpisodeData(data);
+          setLoadingEpisodeData(false);
+          return;
         }
-      },
-      [seriesId, seasonNum, episodeNum, lang],
-    );
+        setEpisodeData(data);
+      } catch (error) {
+        setErrLoadingEpisodeData(error);
+      } finally {
+        setLoadingEpisodeData(false);
+      }
+    }, [seriesId, seasonNum, episodeNum, lang, retryCount]);
 
     useEffect(() => {
-      const controller = new AbortController();
-
-      // there could be a season 0 or episode 0 which would result in a false so i explicitly checked it s undefined
-      if (
-        seriesId !== undefined &&
-        seasonNum !== undefined &&
-        episodeNum !== undefined
-      ) {
-        getEpisodeData(controller);
-      }
-      return () => controller.abort();
-    }, [getEpisodeData, seasonNum, episodeNum, seriesId, retryCount]); // retryCount triggers refetch
-
-    if (loading) {
-      return <EpisodeSkeleton />;
-    }
-
-    if (error) {
-      return (
-        <div className="w-full min-h-[200px] bg-neutral-100 dark:bg-neutral-800/50 rounded-xl p-6 flex flex-col justify-center items-center text-center">
-          <h3 className="text-lg font-semibold text-rose-500">
-            {getTextByLang(lang, "حدث خطأ", "An Error Occurred")}
-          </h3>
-          <p className="text-neutral-600 dark:text-neutral-300 mt-1">
-            {getTextByLang(
-              lang,
-              "لم نتمكن من تحميل بيانات الحلقة.",
-              "Could not load episode details.",
-            )}
-          </p>
-        </div>
-      );
-    }
-
-    if (!episodeData) return null;
+      setErrLoadingEpisodeData(null);
+    }, [seriesId, seasonNum, episodeNum, lang, retryCount]);
+    useEffect(() => {
+      getEpisodeData();
+    }, [getEpisodeData]);
 
     return (
-      <div className="w-full bg-neutral-100 dark:bg-neutral-800/50 rounded-xl p-4 md:p-6 shadow-md border border-neutral-200 dark:border-neutral-700/60">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Image */}
-          <div className="lg:col-span-1">
+      <div className="w-full  h-[200px] dark:text-white flex lg:flex-row md:flex-row sm:flex-col flex-col gap-5">
+        {/** EPISODE COVER */}
+        <div className="min-w-[320px] h-full dark:bg-white/40 bg-black/40 rounded-2xl flex justify-center items-center">
+          {loadingEpisodeData ? (
+            <div className="w-10 h-10  border-gray border-2 dark:border-white border-t-rose-500 dark:border-t-rose-500 animate-spin rounded-full"></div>
+          ) : errLoadingEpisodeData ? (
+            <div className="dark:text-white font-ar">
+              {lang === "ar"
+                ? "لقد حدث خطأ"
+                : "An unexpected error has happend"}
+            </div>
+          ) : (
             <img
-              src={getImageUrl(episodeData.still_path, "w500")}
-              alt={episodeData.name}
-              className="w-full h-full object-cover rounded-lg aspect-video bg-neutral-300 dark:bg-neutral-700"
-              loading="lazy"
+              src={
+                episodeData?.still_path
+                  ? BASE_IMAGE_URL + episodeData.still_path
+                  : PLACEHOLDER_IMAGE
+              }
+              className="w-full h-full object-cover rounded-2xl"
             />
+          )}
+        </div>
+
+        {/** EPISODE DATA */}
+        <div className=" px-2 flex flex-col justify-between gap-3">
+          <div>
+            {" "}
+            <h2 className="font-ar text-2xl text-black dark:text-white">
+              {episodeData?.name}
+            </h2>
+            <p className="line-clamp-5 dark:text-gray-300 text-black ">
+              {episodeData?.overview
+                ? episodeData.overview
+                : lang === "ar"
+                  ? "لا يوجد وصف للحلقه باللغة العربية."
+                  : "No overview available in english."}
+            </p>
           </div>
 
-          {/* Details */}
-          <div className="lg:col-span-2 flex flex-col">
-            <h2 className="text-2xl md:text-3xl font-bold text-neutral-800 dark:text-white">
-              <span className="text-sky-500 dark:text-sky-400">
-                E{episodeData.episode_number}
-              </span>
-              : {episodeData.name}
-            </h2>
-
-            {/* Meta Info Bar */}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-sm text-neutral-600 dark:text-neutral-300">
-              <div className="flex items-center gap-1.5">
-                <Star
-                  className="text-yellow-500"
-                  size={16}
-                  fill="currentColor"
-                />
-                <span className="font-medium">
-                  {episodeData.vote_average?.toFixed(1) || "N/A"}
-                </span>
-              </div>
-              <span className="text-neutral-300 dark:text-neutral-600">|</span>
-              <div className="flex items-center gap-1.5">
-                <Clock size={16} />
-                <span>{formatRuntime(episodeData.runtime, lang)}</span>
-              </div>
-              <span className="text-neutral-300 dark:text-neutral-600">|</span>
-              <div className="flex items-center gap-1.5">
-                <Calendar size={16} />
-                <span>
-                  {episodeData.air_date
-                    ? new Date(episodeData.air_date).toLocaleDateString(
-                        lang === "ar" ? "ar-EG" : "en-US",
-                        { year: "numeric", month: "long", day: "numeric" },
-                      )
-                    : "N/A"}
-                </span>
-              </div>
+          <div className="flex flex-row gap-3">
+            <div className="px-3 py-1 bg-sky-500/35 w-fit h-fit rounded-2xl text-sky-700 dark:text-gray-50">
+              {formatRuntime(episodeData?.runtime, lang)}
             </div>
 
-            <p className="mt-4 text-neutral-700 dark:text-neutral-200 leading-relaxed line-clamp-4">
-              {episodeData.overview ||
-                getTextByLang(lang, "لا يتوفر ملخص.", "No overview available.")}
-            </p>
-
-            {/* Guest Stars */}
-            {episodeData.guest_stars && episodeData.guest_stars.length > 0 && (
-              <div className="mt-6 pt-4 border-t border-neutral-200 dark:border-neutral-700">
-                <h3 className="text-base font-bold text-neutral-800 dark:text-white mb-3">
-                  {getTextByLang(lang, "ضيوف الشرف", "Guest Stars")}
-                </h3>
-                <div className="flex flex-wrap gap-4">
-                  {episodeData.guest_stars.slice(0, 5).map((star) => (
-                    <div
-                      key={star.id}
-                      className="flex items-center h-fit gap-2 w-fit"
-                    >
-                      <div className="w-10 h-10 rounded-full bg-neutral-300 dark:bg-neutral-700 flex-shrink-0 overflow-hidden">
-                        {star.profile_path ? (
-                          <img
-                            src={getImageUrl(star.profile_path, "w185")}
-                            alt={star.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <User className="w-full h-full p-2 text-neutral-500" />
-                        )}
-                      </div>
-                      <div className="text-xs">
-                        <p className="font-semibold text-neutral-800 dark:text-white truncate">
-                          {star.name}
-                        </p>
-                        <p className="text-neutral-500 dark:text-neutral-400 truncate">
-                          {star.character}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            <div className="px-3 py-1 flex flex-row items-center justify-center gap-2 bg-amber-300/20 w-fit h-fit rounded-2xl dark:text-gray-50">
+              <p>{episodeData?.vote_average}</p> <Star color="gold" size={20} />
+            </div>
           </div>
         </div>
       </div>
     );
-  },
+  }
 );
 
 export default Episode;
