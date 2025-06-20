@@ -16,15 +16,13 @@ import { seasonInfoController } from "./controllers/seasons.controller.js";
 import { episodeInfoController } from "./controllers/episode.controller.js";
 import { discoverMediaController } from "./controllers/discover.controller.js";
 import { keywordsController } from "./controllers/keyword.controller.js";
-import { mediaKeywordsController } from "./controllers/mediaKeywords.controller.js";
-import { creditsController } from "./controllers/credits.controller.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  limit: 800, // Limit each IP to 500 requests per `window` (here, per 15 minutes).
+  limit: 500, // Limit each IP to 500 requests per `window` (here, per 15 minutes).
   standardHeaders: "draft-8", // `RateLimit-*` headers
   legacyHeaders: false, // no X-RateLimit headers
 });
@@ -62,12 +60,6 @@ app.get("/episode/:seriesId/:seasonNum/:episodeNum", episodeInfoController);
 // discover series and movies with genres
 app.get("/discover/:mediaType", discoverMediaController);
 app.get("/keywords/:keyQuery", keywordsController);
-
-// keywords for each specific movie or series
-app.get("/:mediaType/:mediaId/keywords", mediaKeywordsController);
-
-// credits for any movie or series
-app.get("/:mediaType/:mediaId/credits", creditsController);
 
 app.listen(PORT, () => {
   console.log("running on http://localhost:3000");
