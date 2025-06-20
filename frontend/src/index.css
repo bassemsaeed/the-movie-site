@@ -26,7 +26,6 @@ html {
 
   --animate-slide: slide 0.8s ease-in-out infinite;
   --breakpoint-xs: 399px;
-
   @keyframes slide {
     0% {
       transform: translateX(0);
@@ -44,6 +43,10 @@ html {
 
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
+  }
+
+  .loading-spinner {
+    @apply w-10 h-10 border-4 mask-conic-from-75% mask-conic-to-75% border-rose-500 animate-spin rounded-full;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {

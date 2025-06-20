@@ -37,6 +37,7 @@ const router = createBrowserRouter([
           `http://localhost:3000/recommended/${movieId}?k=movie&l=${lang}`,
         ),
         axios.get(`http://localhost:3000/media/movie/${movieId}`),
+        axios.get(`http://localhost:3000/movie/${movieId}/keywords`),
       ]);
 
       return { results: response, lang, media_type: "movie" };
@@ -58,6 +59,7 @@ const router = createBrowserRouter([
           `http://localhost:3000/recommended/${seriesId}?k=tv&l=${lang}`,
         ),
         axios.get(`http://localhost:3000/media/tv/${seriesId}`),
+        axios.get(`http://localhost:3000/tv/${seriesId}/keywords`),
       ]);
 
       return { results: response, lang, media_type: "tv" };
