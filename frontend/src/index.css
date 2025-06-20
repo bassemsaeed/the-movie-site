@@ -50,6 +50,10 @@ html {
     @apply bg-gray-400 dark:bg-zinc-500 rounded-full;
   }
 
+   .loading-spinner {
+    @apply w-10 h-10 border-4 mask-conic-from-75% mask-conic-to-75% border-rose-500 animate-spin rounded-full;
+  }
+
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-500 dark:bg-zinc-400;
   }

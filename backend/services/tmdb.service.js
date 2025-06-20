@@ -133,37 +133,57 @@ async function getEpisodeInfo(seriesId, seasonNumber, epNum, lang) {
 async function getMatchedMedia(media_type, lang, genres, page = 1, keywords) {
   lang = lang === undefined ? "en-US" : lang;
 
-  console.log( BASE_API_URL +
-      `discover/${media_type}?include_adult=false&include_video=false${genres ? `&with_genres=${encodeURIComponent(genres)}`: ""}${keywords ? `&with_keywords=${encodeURIComponent(keywords)}`: ""}&language=${lang}&page=${page}`);
-  
   const data = await fetchData(
     BASE_API_URL +
-      `discover/${media_type}?include_adult=false&include_video=false${genres ? `&with_genres=${encodeURIComponent(genres)}`: ""}${keywords ? `&with_keywords=${encodeURIComponent(keywords)}`: ""}&language=${lang}&page=${page}`,
+      `discover/${media_type}?include_adult=false&include_video=false${genres ? `&with_genres=${encodeURIComponent(genres)}` : ""}${keywords ? `&with_keywords=${encodeURIComponent(keywords)}` : ""}&language=${lang}&page=${page}`,
   );
 
   return data;
 }
 
-async function getKeywords(keyword_query) {
+async function getCredits(media_type, media_id, lang) {
+  lang = lang === undefined ? "en-US" : lang;
+
+  const data = await fetchData(
+    BASE_API_URL + `${media_type}/${media_id}/credits?language=${lang}`,
+  );
+
+  return data;
+}
+
+async function getKeyword(keyword_query) {
   const data = await fetchData(
     BASE_API_URL + `search/keyword?query=${keyword_query}`,
   );
 
   return data;
 }
+
+async function getKeywords(media_type, media_id) {
+  // media_type should be either movie ( as in https://api.themoviedb.org/3/movie/{movie_id}/keywords ) or tv (as in https://api.themoviedb.org/3/tv/{series_id}/keywords);
+
+  const data = await fetchData(
+    BASE_API_URL + `${media_type}/${media_id}/keywords`,
+  );
+
+  return data;
+}
+
 export {
-  getTrending,
-  searchMulti,
-  getTopRated,
+  getCredits,
+  getEpisodeInfo,
+  getKeyword,
+  getKeywords,
+  getMatchedMedia,
+  getMedia,
   getMovieDetails,
   getMovieReviews,
   getRecommendedMovies,
   getRecommendedSeries,
-  getMedia,
   getSeasonInfo,
-  getEpisodeInfo,
   getSeiresDetails,
   getSeriesReviews,
-  getMatchedMedia,
-  getKeywords,
+  getTopRated,
+  getTrending,
+  searchMulti,
 };
