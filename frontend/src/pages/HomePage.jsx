@@ -22,7 +22,6 @@ function HomePage() {
   const navigation = useNavigation();
   const isNavigating = Boolean(navigation.location);
   const IMAGE_BASE_URL = "https://media.themoviedb.org/t/p/w220_and_h330_face/"; // Poster image base URL
-  console.log(searchResults);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -246,7 +245,7 @@ function HomePage() {
           >
             {loadingResults ? (
               <div className="flex justify-center items-center h-full">
-                <div className="w-16 h-16 rounded-full border-neutral-300 dark:border-neutral-600 border-4 border-t-rose-600 animate-spin"></div>
+                <div className="loading-spinner"></div>
               </div>
             ) : loadingResultsError ? (
               <div className="font-ar dark:text-red-400 text-red-500 h-full flex justify-center items-center flex-col text-center p-4">

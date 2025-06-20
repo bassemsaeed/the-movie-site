@@ -1,17 +1,17 @@
+import axios from "axios";
 import { parse } from "date-fns";
+import { motion } from "framer-motion";
 import {
-  Flame,
-  Star,
-  HeartOff,
   BookmarkMinus,
   BookmarkPlus,
+  Flame,
+  HeartOff,
+  Star,
 } from "lucide-react";
-import React, { useEffect } from "react";
-import { useLayoutEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import useFetch from "../hooks/useFetch";
 import useTheme from "../hooks/useTheme";
-import { motion } from "framer-motion";
-import { useNavigate } from "react-router";
 import { getTextByLang } from "../utils";
 
 const BASE_MEDIA_URL = "https://image.tmdb.org/t/p/w600_and_h900_bestv2/";
@@ -237,6 +237,7 @@ const MovieCard = ({
 
   const [isLiked, setIsLiked] = useState(false);
   const [isSavedInWatchLater, setIsSavedInWatchLater] = useState(false);
+
   const finalDate =
     lang === "ar"
       ? new Intl.DateTimeFormat("ar-EG-u-nu-arab", {
@@ -251,7 +252,7 @@ const MovieCard = ({
       localStorage.getItem("watchLaterMedia"),
     ).find((item) => item?.id === id);
 
-    const IS_IN_LIKED = JSON.parse(localStorage.getItem("likedMedia")).find(
+    const IS_IN_LIKED = JSON.parse(localStorage.getItem("likedMedia"))?.find(
       (item) => item?.id === id,
     );
 
@@ -267,6 +268,7 @@ const MovieCard = ({
       setIsLiked(false);
     }
   }, [id]);
+
   return (
     <motion.div
       initial={{ y: -30 }}
@@ -301,15 +303,13 @@ const MovieCard = ({
               <button
                 className="bg-black/15 py-1.5 px-3 rounded-sm cursor-pointer dark:bg-white/15 dark:text-white"
                 onClick={() => {
-                  const WATCHLATER_LIST = JSON.parse(
-                    localStorage.getItem("watchLaterMedia"),
-                  );
+                  const WATCHLATER_LIST =
+                    JSON.parse(localStorage.getItem("watchLaterMedia")) || [];
 
                   if (isSavedInWatchLater) {
                     const UPDATED_WATCHLATER_LIST = WATCHLATER_LIST.filter(
                       (item) => item?.id !== id,
                     );
-                    console.log(UPDATED_WATCHLATER_LIST);
 
                     localStorage.setItem(
                       "watchLaterMedia",
@@ -321,12 +321,39 @@ const MovieCard = ({
                     currentItem.media_type =
                       category === "movie" ? "movie" : "tv";
 
-                    WATCHLATER_LIST.push(currentItem);
+                    axios
+                      .get(
+                        `http://localhost:3000/${category === "movie" ? "movie" : "tv"}/${id}/keywords`,
+                      )
+                      .then((result) => {
+                        if (category === "movie") {
+                          currentItem.mediaKeywords =
+                            result?.data?.keywords &&
+                            result?.data?.keywords.length > 11
+                              ? result?.data?.keywords?.slice(0, 11)
+                              : result?.data?.keywords;
+                        } else {
+                          currentItem.mediaKeywords =
+                            result?.data?.results &&
+                            result?.data?.results.length > 11
+                              ? result?.data?.results?.slice(0, 11)
+                              : result?.data?.results;
+                        }
+                        WATCHLATER_LIST.push(currentItem);
 
-                    localStorage.setItem(
-                      "watchLaterMedia",
-                      JSON.stringify(WATCHLATER_LIST),
-                    );
+                        localStorage.setItem(
+                          "watchLaterMedia",
+                          JSON.stringify(WATCHLATER_LIST),
+                        );
+                      })
+                      .catch(() => {
+                        WATCHLATER_LIST.push(currentItem);
+
+                        localStorage.setItem(
+                          "watchLaterMedia",
+                          JSON.stringify(WATCHLATER_LIST),
+                        );
+                      });
 
                     setIsSavedInWatchLater(true);
                   }
@@ -350,9 +377,8 @@ const MovieCard = ({
               <button
                 className="bg-rose-500/75  hover:bg-rose-500/90 transition-all duration-100 py-1.5 px-3 rounded-sm text-white cursor-pointer flex flex-row gap-2 items-center justify-center"
                 onClick={() => {
-                  const storedLikedMedia = JSON.parse(
-                    localStorage.getItem("likedMedia"),
-                  );
+                  const storedLikedMedia =
+                    JSON.parse(localStorage.getItem("likedMedia")) || [];
                   if (isLiked) {
                     const newFilteredMedia = storedLikedMedia.filter(
                       (item) => item.id !== id,
@@ -361,15 +387,45 @@ const MovieCard = ({
                       "likedMedia",
                       JSON.stringify(newFilteredMedia),
                     );
+
                     setIsLiked(false);
                   } else {
                     currentItem.media_type =
                       category === "movie" ? "movie" : "tv";
-                    storedLikedMedia.push(currentItem);
-                    localStorage.setItem(
-                      "likedMedia",
-                      JSON.stringify(storedLikedMedia),
-                    );
+
+                    axios
+                      .get(
+                        `http://localhost:3000/${category === "movie" ? "movie" : "tv"}/${id}/keywords`,
+                      )
+                      .then((result) => {
+                        if (category === "movie") {
+                          currentItem.mediaKeywords =
+                            result?.data?.keywords &&
+                            result?.data?.keywords.length > 11
+                              ? result?.data?.keywords?.slice(0, 11)
+                              : result?.data?.keywords;
+                        } else {
+                          currentItem.mediaKeywords =
+                            result?.data?.results &&
+                            result?.data?.results.length > 11
+                              ? result?.data?.results?.slice(0, 11)
+                              : result?.data?.results;
+                        }
+
+                        storedLikedMedia.push(currentItem);
+                        localStorage.setItem(
+                          "likedMedia",
+                          JSON.stringify(storedLikedMedia),
+                        );
+                      })
+                      .catch(() => {
+                        storedLikedMedia.push(currentItem);
+                        localStorage.setItem(
+                          "likedMedia",
+                          JSON.stringify(storedLikedMedia),
+                        );
+                      });
+
                     setIsLiked(true);
                   }
                 }}

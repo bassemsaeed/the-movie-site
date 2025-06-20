@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
-import useTheme from "../hooks/useTheme";
-import useFetch from "../hooks/useFetch";
-import { getTextByLang } from "../utils";
+import axios from "axios";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Heart, HeartOff } from "lucide-react";
-import { useNavigate, useNavigation } from "react-router";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
+import useFetch from "../hooks/useFetch";
+import useTheme from "../hooks/useTheme";
+import { getTextByLang } from "../utils";
 
 const BASE_MEDIA_URL = "https://image.tmdb.org/t/p/w1280/";
 const BASE_LOGO_URL = "https://media.themoviedb.org/t/p/w500";
@@ -12,9 +13,6 @@ const BASE_LOGO_URL = "https://media.themoviedb.org/t/p/w500";
 const Trending = () => {
   const { lang } = useTheme();
   const navigate = useNavigate();
-  const navigation = useNavigation();
-  const isNavigating = Boolean(navigation.location);
-  console.log(isNavigating);
 
   const [category, setCategory] = useState("movie");
   const [currentTrendingIndex, setCurrentTrendingIndex] = useState(0);
@@ -34,7 +32,8 @@ const Trending = () => {
   const MAX_ITEMS = data?.results.length || 0;
 
   const [isLiked, setIsLiked] = useState(false);
-  console.log("is found ->", isLiked);
+  const [mediaKeywords, setMediaKeywords] = useState(null);
+
   const idOfMovieOrSeries = data?.results[currentTrendingIndex]?.id;
 
   useEffect(() => {
@@ -44,6 +43,23 @@ const Trending = () => {
 
     setIsLiked(liked ? true : false);
   }, [data, currentTrendingIndex]);
+
+  useEffect(() => {
+    if (!data?.results[currentTrendingIndex].id) return;
+
+    (async () => {
+      try {
+        const result = await axios.get(
+          `http://localhost:3000/${category === "movie" ? "movie" : "tv"}/${data?.results[currentTrendingIndex].id}/keywords`,
+        );
+
+        if (category === "movie") setMediaKeywords(result.data.keywords);
+        else setMediaKeywords(result.data.results);
+      } catch (e) {
+        setMediaKeywords({ error: true, val: e });
+      }
+    })();
+  }, [currentTrendingIndex, category, data]);
 
   const handleNext = () => {
     if (currentTrendingIndex === MAX_ITEMS - 1) {
@@ -137,7 +153,7 @@ const Trending = () => {
       {
         <div
           className={
-            "w-full h-full overflow-hidden rounded-xl " +
+            "w-full h-full overflow-hidden rounded-xl select-none " +
             (lang === "ar"
               ? " mask-radial-from-100% mask-radial-at-top-left mask-radial-farthest-corner"
               : " mask-radial-from-100% mask-radial-at-bottom-right mask-radial-farthest-corner")
@@ -250,26 +266,26 @@ const Trending = () => {
                 <button
                   className="px-3 cursor-pointer rounded-lg bg-rose-600/45 max-w-fit hover:bg-rose-600/80 h-10/12 transition-all duration-150 text-white font-ar text-sm"
                   onClick={() => {
-                    const storedLikedMedia = JSON.parse(
-                      localStorage.getItem("likedMedia"),
-                    );
+                    const storedLikedMedia =
+                      JSON.parse(localStorage.getItem("likedMedia")) || [];
+
                     const currentMediaItem =
                       data?.results[currentTrendingIndex];
+
                     if (!isLiked) {
-                      console.log("not liked but now liked");
+                      currentMediaItem.mediaKeywords =
+                        mediaKeywords && mediaKeywords.length > 6
+                          ? mediaKeywords?.slice(0, 11)
+                          : mediaKeywords;
 
                       storedLikedMedia.push(currentMediaItem);
                       localStorage.setItem(
                         "likedMedia",
                         JSON.stringify(storedLikedMedia),
                       );
-                      // setRetryCount(retryCount + 1);
+
                       setIsLiked(true);
                     } else {
-                      // currentMediaItem.liked = false;
-                      // console.log("in not like");
-                      console.log("liked but now not liked");
-
                       const newFilteredMedia = storedLikedMedia.filter(
                         (media) => media.id !== currentMediaItem.id,
                       );
@@ -278,7 +294,7 @@ const Trending = () => {
                         "likedMedia",
                         JSON.stringify(newFilteredMedia),
                       );
-                      // setRetryCount(retryCount + 1);
+
                       setIsLiked(false);
                     }
                   }}
