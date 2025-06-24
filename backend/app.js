@@ -1,30 +1,16 @@
 import "./config/dotenv.config.js"; // initialize environment vars
 import express from "express";
-import { getTrendingController } from "./controllers/trending.controller.js";
-import { searchController } from "./controllers/search.controller.js";
 import { rateLimit } from "express-rate-limit";
 import cors from "cors";
-import {
-  movieDetailsController,
-  topRatedMoviesAndSeriesController,
-} from "./controllers/movie.controller.js";
-import { reviewsController } from "./controllers/reviews.controller.js";
-import { recommendedController } from "./controllers/recommended.controller.js";
-import { seriesDetailsController } from "./controllers/series.controller.js";
-import { mediaController } from "./controllers/media.controller.js";
-import { seasonInfoController } from "./controllers/seasons.controller.js";
-import { episodeInfoController } from "./controllers/episode.controller.js";
-import { discoverMediaController } from "./controllers/discover.controller.js";
-import { keywordsController } from "./controllers/keyword.controller.js";
-import { mediaKeywordsController } from "./controllers/mediaKeywords.controller.js";
-import { creditsController } from "./controllers/credits.controller.js";
+import { getTrendingController, searchController, movieDetailsController, topRatedMoviesAndSeriesController, reviewsController, recommendedController, seriesDetailsController, mediaController, seasonInfoController, episodeInfoController, discoverMediaController, keywordsController, mediaKeywordsController, creditsController, aiRecommendationController} from "./controllers/all-controller.js"
+import { limit } from "./middlewares/ratelimiterforai.middleware.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  limit: 800, // Limit each IP to 500 requests per `window` (here, per 15 minutes).
+  limit: 800, // Limit each IP to 800 requests per `window` (here, per 15 minutes).
   standardHeaders: "draft-8", // `RateLimit-*` headers
   legacyHeaders: false, // no X-RateLimit headers
 });
@@ -38,9 +24,6 @@ app.use(
 
 app.use(limiter);
 
-app.get("/", (req, res) => {
-  res.send("<h1 style='color: red;'>Hello world</h1>");
-});
 
 // general movies and series and characters endpoints/routes
 app.get("/trending", getTrendingController);
@@ -69,6 +52,11 @@ app.get("/:mediaType/:mediaId/keywords", mediaKeywordsController);
 // credits for any movie or series
 app.get("/:mediaType/:mediaId/credits", creditsController);
 
+
+// ai recommendation 
+app.get("/airecommend", limit, aiRecommendationController);
+
+
 app.listen(PORT, () => {
-  console.log("running on http://localhost:3000");
+  console.log(`running on http://localhost:${PORT}`);
 });

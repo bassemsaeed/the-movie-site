@@ -249,7 +249,7 @@ const MovieCard = ({
 
   useEffect(() => {
     const IS_SAVED_IN_WATCHLATER = JSON.parse(
-      localStorage.getItem("watchLaterMedia"),
+      localStorage.getItem("watchLaterMedia") || [],
     ).find((item) => item?.id === id);
 
     const IS_IN_LIKED = JSON.parse(localStorage.getItem("likedMedia"))?.find(

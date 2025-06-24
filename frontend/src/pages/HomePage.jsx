@@ -1,5 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
-import Hero from "../components/Hero";
+import { useRef, useState, useEffect } from "react";
 import { getTextByLang } from "../utils";
 import { Link, Outlet, useNavigate, useNavigation } from "react-router";
 import useTheme from "../hooks/useTheme";

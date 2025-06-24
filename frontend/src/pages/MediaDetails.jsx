@@ -111,7 +111,7 @@ const CreditsSection = React.memo(({ credits, loading, error, lang }) => {
           ) : (
             <div
               ref={scrollContainerRef}
-              className="flex hidden-scrollbar space-x-4 overflow-x-auto scroll-snap-x-mandatory scroll-smooth hide-scrollbar -mx-4 px-4"
+              className="flex custom-scrollbar space-x-4 overflow-x-auto scroll-snap-x-mandatory scroll-smooth hide-scrollbar -mx-4 px-4 pb-4"
             >
               {credits.cast.map((actor) => (
                 <ActorCard key={actor.credit_id || actor.id} actor={actor} />
@@ -337,12 +337,12 @@ const ActionButtons = ({ lang, media, media_type, mediaKeywords }) => {
   const [isSavedInWatchLater, setIsSavedInWatchLater] = useState(false);
 
   useLayoutEffect(() => {
-    const liked = JSON.parse(localStorage.getItem("likedMedia") || "[]")?.find(
+    const liked = JSON.parse(localStorage.getItem("likedMedia") || [])?.find(
       (item) => item?.id === media?.id,
     );
 
     const IS_SAVED_IN_WATCHLATER = JSON.parse(
-      localStorage.getItem("watchLaterMedia") || "[]",
+      localStorage.getItem("watchLaterMedia") || [],
     ).find((item) => item?.id === media?.id);
 
     if (IS_SAVED_IN_WATCHLATER) {
