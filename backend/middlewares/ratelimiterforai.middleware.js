@@ -14,7 +14,7 @@ const limit = rateLimit({
 
     const hoursLeft = Math.floor(timeLeftMs / (1000 * 60 * 60));
     const minutesLeft = Math.floor(
-      (timeLeftMs % (1000 * 60 * 60)) / (1000 * 60)
+      (timeLeftMs % (1000 * 60 * 60)) / (1000 * 60),
     );
 
     const hourTextEn = hoursLeft === 1 ? "hour" : "hours";

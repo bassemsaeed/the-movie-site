@@ -66,17 +66,20 @@ async function aiRecommendationController(req, res) {
               Authorization: `Bearer ${TMDB_API_KEY}`,
               Accept: "application/json",
             },
-          }
+          },
         );
-      })
+      }),
     );
 
     // getting the first 4 keywords results from tmdb for each of ai generated keywords pr less
     const fulfilledKeywords = tmdbKwordReuslts
-      .filter((kwPromise) => kwPromise.value !== undefined).map((kwPromise) => kwPromise.value.data);
-   
-    const extractedKeywords = fulfilledKeywords.filter((data) => data.results !== undefined);
-    
+      .filter((kwPromise) => kwPromise.value !== undefined)
+      .map((kwPromise) => kwPromise.value.data);
+
+    const extractedKeywords = fulfilledKeywords.filter(
+      (data) => data.results !== undefined,
+    );
+
     const finalKwords = extractedKeywords.flatMap((data) => {
       if (data.results.length > 4) {
         return data.results.slice(0, 4);
@@ -85,7 +88,6 @@ async function aiRecommendationController(req, res) {
       return data.results;
     });
 
-    
     sendEvent({
       success: true,
       message: "getting your results...",
@@ -93,7 +95,7 @@ async function aiRecommendationController(req, res) {
 
     const genres_and_kwords = await getFinalGeneratedKwordsAndGneres(
       prompt,
-      finalKwords
+      finalKwords,
     );
 
     const moviesReq = axios.get(
@@ -103,7 +105,7 @@ async function aiRecommendationController(req, res) {
           Authorization: `Bearer ${TMDB_API_KEY}`,
           Accept: "application/json",
         },
-      }
+      },
     );
 
     const seriesReq = axios.get(
@@ -113,11 +115,11 @@ async function aiRecommendationController(req, res) {
           Authorization: `Bearer ${TMDB_API_KEY}`,
           Accept: "application/json",
         },
-      }
+      },
     );
 
     const [movies, series] = await Promise.allSettled([moviesReq, seriesReq]);
-    
+
     sendEvent({
       success: true,
       end: true,

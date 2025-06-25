@@ -277,9 +277,8 @@ async function getKeywordsFromPrompt(userPrompt) {
 }
 
 async function getFinalGeneratedKwordsAndGneres(userPrompt, keywords) {
- 
   const finalPrompt =
-    genresAndFinalFilterPrompt + 
+    genresAndFinalFilterPrompt +
     userPrompt +
     " and here are the keywords " +
     JSON.stringify(keywords);
@@ -289,11 +288,10 @@ async function getFinalGeneratedKwordsAndGneres(userPrompt, keywords) {
     contents: finalPrompt,
     config: {
       responseMimeType: "application/json",
- 
+
       responseSchema: {
         type: Type.OBJECT,
         properties: {
-        
           search_title: {
             type: Type.STRING,
           },
@@ -314,7 +312,7 @@ async function getFinalGeneratedKwordsAndGneres(userPrompt, keywords) {
             required: ["with_genres", "with_keywords"],
           },
         },
-  
+
         required: ["search_title", "movie_query", "tv_query"],
       },
     },

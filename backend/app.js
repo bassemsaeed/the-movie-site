@@ -2,11 +2,26 @@ import "./config/dotenv.config.js"; // initialize environment vars
 import express from "express";
 import { rateLimit } from "express-rate-limit";
 import cors from "cors";
-import { getTrendingController, searchController, movieDetailsController, topRatedMoviesAndSeriesController, reviewsController, recommendedController, seriesDetailsController, mediaController, seasonInfoController, episodeInfoController, discoverMediaController, keywordsController, mediaKeywordsController, creditsController, aiRecommendationController} from "./controllers/all-controller.js"
+import {
+  getTrendingController,
+  searchController,
+  movieDetailsController,
+  topRatedMoviesAndSeriesController,
+  reviewsController,
+  recommendedController,
+  seriesDetailsController,
+  mediaController,
+  seasonInfoController,
+  episodeInfoController,
+  discoverMediaController,
+  keywordsController,
+  mediaKeywordsController,
+  creditsController,
+  aiRecommendationController,
+} from "./controllers/all-controller.js";
 import { limit } from "./middlewares/ratelimiterforai.middleware.js";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -23,7 +38,6 @@ app.use(
 );
 
 app.use(limiter);
-
 
 // general movies and series and characters endpoints/routes
 app.get("/trending", getTrendingController);
@@ -52,11 +66,7 @@ app.get("/:mediaType/:mediaId/keywords", mediaKeywordsController);
 // credits for any movie or series
 app.get("/:mediaType/:mediaId/credits", creditsController);
 
-
-// ai recommendation 
+// ai recommendation
 app.get("/airecommend", limit, aiRecommendationController);
 
-
-app.listen(PORT, () => {
-  console.log(`running on http://localhost:${PORT}`);
-});
+export { app };
