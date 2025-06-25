@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useLoaderData, useNavigate, useNavigation } from "react-router";
 import useTheme from "../hooks/useTheme";
@@ -10,26 +10,31 @@ import {
   BookmarkMinus,
   BookmarkPlus,
   Calendar,
+  Check,
   Clock,
   Film,
   Heart,
   HeartOff,
   Share2,
+  ShieldAlert,
   Star,
   User,
 } from "lucide-react";
 import Episode from "../components/Episode";
 import { ThemeHeader } from "../components/ThemeHeader";
+import ShareComponent from "../components/ShareComponent";
 
 const BASE_IMAGE_URL = "https://image.tmdb.org/t/p/";
 
 const getImageUrl = (
   path,
   size = "original",
-  fallback = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAWlBMVEXv8fNod4f19vhkdIRcbX52g5KPmqX29/iYoq3l6OuCj5vd4eTr7fBfcIFaa33M0dbBx82SnKe7wchtfIt8iZejq7TU2N2Ik6CwuL/Gy9Gqsrqbpa/P1NmhqrNz0egRAAADBklEQVR4nO3c63KqMBRAYUiwwUvEete27/+ax1tVAqhwEtnprO+XM62Oyw2CGTFJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJe6Mb5vqL7jjsws/wgln/dddzBZZjocuxj2HaiWNg1JL/oO3GVBA9PUzvvdF80q7AgPQ/zot1DlOnThyFBIIYWvFtrMK3mFdj30aWzFFWZjr+/qE4mFXh+YwrehsDMK34bCzmIoVEad1nC6PbD8QpXMNwOdDvKi2xMUX2jm2h7/onU2WHcZo/RCld8WN3TWZR1CeKH6LK1tTGftE2UXqpmzPGXbLwnKLkzcT8X6s/UQRReqWWX9LWs9RNGF5qOysmFb74miC9XCDUzt6k8VJtXC9jsihW9Tu5Uuq/vhvlKokuGjc1bRhWZVLdw5MWq8mU6zfNL4wKILk/W0spW6dyvOZ61p4wKd7EIzcoZot+UQVVxeA62bEmUXJuPyIV8PnDsVtxXtpikKL1S7++1U6/IZzV1g8xSFFx4i9HWMdjksNZQCGxOlFyZq8jW1VmubpZV90PngUZ8ovvDYuNt//Wy/1ZPAhsQICo+rUMa4T70msP7tJorCun8vKofKhilGWlg7wfopxlnYMMHaKUZZ2DjBuinGWPgwsDLFCAufBLqJ8RU+DXQ21OgKXwgsTzG2wpcCj1O8nsJGVvjgMNE0xbgKX5zgeYqXxKgKX57geYrnDTWmwhYTvJtiRIUtA3/fbuIpbB14mWI0hR0Cz1OMpbBT4CkxiaOwY+BpQ42isNVhwk283hJc2HmC5Va5hf8xwTgK/UxQcKGvQLGF3gKlFvoLFFroMVBmoc9AkYWeDhNyC1Xh9aJLeYV+Jyiw0Os+KLHQe6C0Qv+BwgoDBMoqDBEoqtCECJRUOPz2e5gQV2jnYa7qllOYBvr5CEGFgVBIIYXPmJ/ghZueZ+hexOWd+w3q9ycuwg5R2377DsapDflbX7rTFah+TbajQSij/aT/wNNF26FUvoELAAAAAAAAAAAAAAAAAAAAAAAAAAAA4G/4B9L3P1vg3y4/AAAAAElFTkSuQmCC",
+  fallback = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAWlBMVEXv8fNod4f19vhkdIRcbX52g5KPmqX29/iYoq3l6OuCj5vd4eTr7fBfcIFaa33M0dbBx82SnKe7wchtfIt8iZejq7TU2N2Ik6CwuL/Gy9Gqsrqbpa/P1NmhqrNz0egRAAADBklEQVR4nO3c63KqMBRAYUiwwUvEete27/+ax1tVAqhwEtnprO+XM62Oyw2CGTFJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJe6Mb5vqL7jjsws/wgln/dddzBZZjocuxj2HaiWNg1JL/oO3GVBA9PUzvvdF80q7AgPQ/zot1DlOnThyFBIIYWvFtrMK3mFdj30aWzFFWZjr+/qE4mFXh+YwrehsDMK34bCzmIoVEad1nC6PbD8QpXMNwOdDvKi2xMUX2jm2h7/onU2WHcZo/RCld8WN3TWZR1CeKH6LK1tTGftE2UXqpmzPGXbLwnKLkzcT8X6s/UQRReqWWX9LWs9RNGF5qOysmFb74miC9XCDUzt6k8VJtXC9jsihW9Tu5Uuq/vhvlKokuGjc1bRhWZVLdw5MWq8mU6zfNL4wKILk/W0spW6dyvOZ61p4wKd7EIzcoZot+UQVVxeA62bEmUXJuPyIV8PnDsVtxXtpikKL1S7++1U6/IZzV1g8xSFFx4i9HWMdjksNZQCGxOlFyZq8jW1VmubpZV90PngUZ8ovvDYuNt//Wy/1ZPAhsQICo+rUMa4T70msP7tJorCun8vKofKhilGWlg7wfopxlnYMMHaKUZZ2DjBuinGWPgwsDLFCAufBLqJ8RU+DXQ21OgKXwgsTzG2wpcCj1O8nsJGVvjgMNE0xbgKX5zgeYqXxKgKX57geYrnDTWmwhYTvJtiRIUtA3/fbuIpbB14mWI0hR0Cz1OMpbBT4CkxiaOwY+BpQ42isNVhwk283hJc2HmC5Va5hf8xwTgK/UxQcKGvQLGF3gKlFvoLFFroMVBmoc9AkYWeDhNyC1Xh9aJLeYV+Jyiw0Os+KLHQe6C0Qv+BwgoDBMoqDBEoqtCECJRUOPz2e5gQV2jnYa7qllOYBvr5CEGFgVBIIYXPmJ/ghZueZ+hexOWd+w3q9ycuwg5R2377DsapDflbX7rTFah+TbajQSij/aT/wNNF26FUvoELAAAAAAAAAAAAAAAAAAAAAAAAAAAA4G/4B9L3P1vg3y4/AAAAAElFTkSuQmCC"
 ) => {
   return path ? `${BASE_IMAGE_URL}${size}${path}` : fallback;
 };
+
+
 
 const ActorCard = React.memo(({ actor }) => {
   return (
@@ -96,7 +101,7 @@ const CreditsSection = React.memo(({ credits, loading, error, lang }) => {
     credits?.crew.filter((member) => keyJobs.includes(member.job)) || [];
 
   const uniqueCrew = Array.from(
-    new Map(keyCrew.map((item) => [item["id"], item])).values(),
+    new Map(keyCrew.map((item) => [item["id"], item])).values()
   );
 
   return (
@@ -165,58 +170,44 @@ const Section = ({ title, children, className = "" }) => (
 );
 
 const MediaHeder = React.memo(
-  ({ media, lang, media_type, loadingMedia, errLoading, mediaKeywords }) => (
-    <div className="relative pt-16">
-      <div className="absolute inset-0 h-[60vh] md:h-[80vh] overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `url(${getImageUrl(media.backdrop_path)})`,
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-neutral-50 via-neutral-50/80 to-transparent dark:from-neutral-900 dark:via-neutral-900/80" />
-      </div>
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 md:pt-48 pb-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-          <aside className="md:col-span-1 -mt-12 md:-mt-32">
-            {loadingMedia ? (
-              <div className="rounded-xl shadow-2xl shadow-black/40 w-full aspect-[2/3] bg-gray-600/30 animate-pulse flex justify-center items-center">
-                <div className="w-10 h-10 border-4 mask-conic-from-75% mask-conic-to-75% border-rose-500 animate-spin rounded-full"></div>
-              </div>
-            ) : (
-              <img
-                src={getImageUrl(media.poster_path, "w500")}
-                alt={`${media.title} Poster`}
-                className="rounded-xl shadow-2xl shadow-black/40 w-full aspect-[2/3] object-cover"
-              />
-            )}
-          </aside>
-          <main className="md:col-span-2 flex flex-col justify-end">
-            <div className="text-black dark:text-white">
+  ({
+    media,
+    lang,
+    media_type,
+    loadingMedia,
+    errLoading,
+    mediaKeywords,
+    setShowShareComponent,
+    showShareComponent,
+  }) => {
+    return (
+      <div className="relative pt-16">
+        <div className="absolute inset-0 h-[60vh] md:h-[80vh] overflow-hidden">
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage: `url(${getImageUrl(media.backdrop_path)})`,
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-neutral-50 via-neutral-50/80 to-transparent dark:from-neutral-900 dark:via-neutral-900/80" />
+        </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 md:pt-48 pb-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+            <aside className="md:col-span-1 -mt-12 md:-mt-32">
               {loadingMedia ? (
-                <div className="w-10 h-10 border-4 mask-conic-from-75% mask-conic-to-75% border-rose-500 animate-spin rounded-full"></div>
-              ) : errLoading ? (
-                <div className="dark:text-white font-ar text-[15px]">
-                  {getTextByLang(
-                    lang,
-                    "لقد حدث خطأ",
-                    "An unexpected error has happend",
-                  )}
+                <div className="rounded-xl shadow-2xl shadow-black/40 w-full aspect-[2/3] bg-gray-600/30 animate-pulse flex justify-center items-center">
+                  <div className="w-10 h-10 border-4 mask-conic-from-75% mask-conic-to-75% border-rose-500 animate-spin rounded-full"></div>
                 </div>
               ) : (
-                <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter">
-                  {media.title || media.name || media.original_name}
-                </h1>
+                <img
+                  src={getImageUrl(media.poster_path, "w500")}
+                  alt={`${media.title} Poster`}
+                  className="rounded-xl shadow-2xl shadow-black/40 w-full aspect-[2/3] object-cover"
+                />
               )}
-              {media.tagline && (
-                <p className="text-lg italic text-neutral-600 dark:text-neutral-300 mt-2 mb-6">
-                  "{media.tagline}"
-                </p>
-              )}
-              <div className="mt-4">
-                <h3 className="text-xl font-bold mb-2 text-neutral-800 dark:text-neutral-100">
-                  {getTextByLang(lang, "ملخص", "Overview")}
-                </h3>
+            </aside>
+            <main className="md:col-span-2 flex flex-col justify-end">
+              <div className="text-black dark:text-white">
                 {loadingMedia ? (
                   <div className="w-10 h-10 border-4 mask-conic-from-75% mask-conic-to-75% border-rose-500 animate-spin rounded-full"></div>
                 ) : errLoading ? (
@@ -224,45 +215,86 @@ const MediaHeder = React.memo(
                     {getTextByLang(
                       lang,
                       "لقد حدث خطأ",
-                      "An unexpected error has happend",
+                      "An unexpected error has happend"
                     )}
                   </div>
                 ) : (
-                  <p className="leading-relaxed text-neutral-700 dark:text-neutral-200">
-                    {getTextByLang(
-                      lang,
-                      media.overview || "لايوجد وصف متاح باللغة العربية.",
-                      media.overview || "No overview available in english.",
-                    )}
+                  <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter">
+                    {media.title || media.name || media.original_name}
+                  </h1>
+                )}
+                {media.tagline && (
+                  <p className="text-lg italic text-neutral-600 dark:text-neutral-300 mt-2 mb-6">
+                    "{media.tagline}"
                   </p>
                 )}
-              </div>
-              <MediaStats media={media} media_type={media_type} />
-              <div className="flex flex-wrap items-center gap-3 mt-6">
-                {media.genres?.map((genre) => (
-                  <span
-                    key={genre.id}
-                    className="rounded-full text-xs px-3 py-1.5 font-semibold bg-sky-100 text-sky-800 dark:bg-sky-500/10 dark:text-sky-300"
-                  >
-                    {genre.name}
-                  </span>
-                ))}
-              </div>
+                <div className="mt-4">
+                  <h3 className="text-xl font-bold mb-2 text-neutral-800 dark:text-neutral-100">
+                    {getTextByLang(lang, "ملخص", "Overview")}
+                  </h3>
+                  {loadingMedia ? (
+                    <div className="w-10 h-10 border-4 mask-conic-from-75% mask-conic-to-75% border-rose-500 animate-spin rounded-full"></div>
+                  ) : errLoading ? (
+                    <div className="dark:text-white font-ar text-[15px]">
+                      {getTextByLang(
+                        lang,
+                        "لقد حدث خطأ",
+                        "An unexpected error has happend"
+                      )}
+                    </div>
+                  ) : (
+                    <p className="leading-relaxed text-neutral-700 dark:text-neutral-200">
+                      {getTextByLang(
+                        lang,
+                        media.overview || "لايوجد وصف متاح باللغة العربية.",
+                        media.overview || "No overview available in english."
+                      )}
+                    </p>
+                  )}
+                </div>
+                <MediaStats media={media} media_type={media_type} />
+                <div className="flex flex-wrap items-center gap-3 mt-6">
+                  {media.genres?.map((genre) => (
+                    <span
+                      key={genre.id}
+                      className="rounded-full text-xs px-3 py-1.5 font-semibold bg-sky-100 text-sky-800 dark:bg-sky-500/10 dark:text-sky-300"
+                    >
+                      {genre.name}
+                    </span>
+                  ))}
+                </div>
 
-              <div className="mt-8">
-                <ActionButtons
-                  lang={lang}
-                  media={media}
-                  media_type={media_type}
-                  mediaKeywords={mediaKeywords}
-                />
+                <div className="mt-8">
+                  <ActionButtons
+                    lang={lang}
+                    setShowShareComponent={setShowShareComponent}
+                    media={media}
+                    showShareComponent={showShareComponent}
+                    media_type={media_type}
+                    mediaKeywords={mediaKeywords}
+                  />
+                </div>
+                {/** SHARE COMP OVERLAY */}
+                <AnimatePresence>
+                  {showShareComponent && (
+                    <div className="mt-2">
+                      <ShareComponent
+                        mediaType={media_type}
+                        title={
+                          media.title || media.name || media.original_name || ""
+                        }
+                        url={window.location.href}
+                      />
+                    </div>
+                  )}
+                </AnimatePresence>
               </div>
-            </div>
-          </main>
+            </main>
+          </div>
         </div>
       </div>
-    </div>
-  ),
+    );
+  }
 );
 
 const MediaStats = React.memo(({ media, media_type }) => {
@@ -281,7 +313,7 @@ const MediaStats = React.memo(({ media, media_type }) => {
           label={getTextByLang(
             lang,
             media_type === "movie" ? "مدة الفيلم" : "المواسم",
-            media_type === "movie" ? "RUNTIME" : "SEASONS",
+            media_type === "movie" ? "RUNTIME" : "SEASONS"
           )}
           value={
             media_type === "movie"
@@ -332,17 +364,26 @@ const StatPill = ({ icon, label, value }) => (
   </div>
 );
 
-const ActionButtons = ({ lang, media, media_type, mediaKeywords }) => {
+const ActionButtons = ({
+  lang,
+  media,
+  media_type,
+  mediaKeywords,
+  setShowShareComponent,
+  showShareComponent,
+}) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isSavedInWatchLater, setIsSavedInWatchLater] = useState(false);
+  const [shared, setShared] = useState(false);
+  const [errCopying, setErrCopying] = useState(false);
 
   useLayoutEffect(() => {
     const liked = JSON.parse(localStorage.getItem("likedMedia") || [])?.find(
-      (item) => item?.id === media?.id,
+      (item) => item?.id === media?.id
     );
 
     const IS_SAVED_IN_WATCHLATER = JSON.parse(
-      localStorage.getItem("watchLaterMedia") || [],
+      localStorage.getItem("watchLaterMedia") || []
     ).find((item) => item?.id === media?.id);
 
     if (IS_SAVED_IN_WATCHLATER) {
@@ -364,7 +405,7 @@ const ActionButtons = ({ lang, media, media_type, mediaKeywords }) => {
 
           if (isLiked) {
             const newLikedList = storedLikedMedia.filter(
-              (item) => item.id !== media.id,
+              (item) => item.id !== media.id
             );
             localStorage.setItem("likedMedia", JSON.stringify(newLikedList));
             setIsLiked(false);
@@ -384,7 +425,7 @@ const ActionButtons = ({ lang, media, media_type, mediaKeywords }) => {
             storedLikedMedia.push(media);
             localStorage.setItem(
               "likedMedia",
-              JSON.stringify(storedLikedMedia),
+              JSON.stringify(storedLikedMedia)
             );
             setIsLiked(true);
           }
@@ -408,11 +449,11 @@ const ActionButtons = ({ lang, media, media_type, mediaKeywords }) => {
 
           if (isSavedInWatchLater) {
             const UPDATED_WATCHLATER_LIST = WATCHLATER_LIST.filter(
-              (item) => item?.id !== media?.id,
+              (item) => item?.id !== media?.id
             );
             localStorage.setItem(
               "watchLaterMedia",
-              JSON.stringify(UPDATED_WATCHLATER_LIST),
+              JSON.stringify(UPDATED_WATCHLATER_LIST)
             );
             setIsSavedInWatchLater(false);
           } else {
@@ -430,7 +471,7 @@ const ActionButtons = ({ lang, media, media_type, mediaKeywords }) => {
             WATCHLATER_LIST.push(media);
             localStorage.setItem(
               "watchLaterMedia",
-              JSON.stringify(WATCHLATER_LIST),
+              JSON.stringify(WATCHLATER_LIST)
             );
             setIsSavedInWatchLater(true);
           }
@@ -449,8 +490,56 @@ const ActionButtons = ({ lang, media, media_type, mediaKeywords }) => {
         )}
       </button>
 
-      <button className="flex items-center justify-center gap-2 outline-none select-none py-2 px-5 rounded-lg bg-neutral-700 hover:bg-neutral-800 dark:bg-neutral-800 dark:hover:bg-neutral-700 duration-150 font-semibold text-white cursor-pointer shadow-lg shadow-black/10">
-        <Share2 size={18} /> {getTextByLang(lang, "مشاركة", "Share")}
+      <button
+        className="flex items-center justify-center gap-2 outline-none select-none py-2 px-5 rounded-lg bg-neutral-700 hover:bg-neutral-800 dark:bg-neutral-800 dark:hover:bg-neutral-700 duration-150 font-semibold text-white cursor-pointer shadow-lg shadow-black/10"
+        onClick={async () => {
+          const shareText = getTextByLang(
+            lang,
+            `شاهد ${media_type === "tv" ? "مسلسل" : "فيلم"} ${media.title || media.name}!`,
+            `Watch this ${media_type === "tv" ? "series" : "movie"} (${media.title || media.name})!`
+          );
+
+          const mediaToShare = {
+            title:
+              media.title ||
+              media.name ||
+              media.original_name ||
+              `${media_type === "tv" ? `${getTextByLang(lang, "مسلسل", "series")}` : `${getTextByLang(lang, "فيلم", "movie")}`}`,
+            text: shareText,
+            url: window.location.href,
+          };
+
+          if (
+            navigator !== undefined &&
+            navigator.canShare !== undefined &&
+            navigator.canShare(mediaToShare)
+          ) {
+            try {
+              await navigator.share(mediaToShare);
+              setShared(true);
+              setTimeout(() => {
+                setShared(false);
+              }, 2000);
+            } catch (e) {
+              console.error("An error happend ", e);
+              setErrCopying(true);
+              setTimeout(() => {
+                setErrCopying(false);
+              }, 2000);
+            }
+          } else {
+            setShowShareComponent(!showShareComponent);
+          }
+        }}
+      >
+        {shared ? (
+          <Check size={18} color="green" />
+        ) : errCopying ? (
+          <ShieldAlert size={18} color="red" />
+        ) : (
+          <Share2 size={18} />
+        )}{" "}
+        {getTextByLang(lang, "مشاركة", "Share")}
       </button>
     </div>
   );
@@ -467,7 +556,7 @@ const MovieCard = ({ movie }) => {
           className="aspect-[2/3] w-full bg-neutral-200 dark:bg-neutral-800 rounded-lg overflow-hidden relative"
           onClick={() => {
             navigate(
-              `/${movie.media_type === "movie" ? "movies" : "series"}/${movie.id}${lang === "ar" ? "?l=ar" : ""}`,
+              `/${movie.media_type === "movie" ? "movies" : "series"}/${movie.id}${lang === "ar" ? "?l=ar" : ""}`
             );
           }}
         >
@@ -614,6 +703,9 @@ const Movie = () => {
 
   const mediaKeywords = results?.[4]?.value?.data || null;
 
+  // share component
+  const [showShareComponent, setShowShareComponent] = useState(false);
+
   // ... (rest of the state declarations remain the same)
   const seasons =
     media_type === "tv" && mediaDetails?.seasons?.length > 0
@@ -668,6 +760,7 @@ const Movie = () => {
     setShowEpisodesDropDown(false);
     setCurrentEpisodeNum(null);
     setMediaDetails(details);
+    setShowShareComponent(false);
     setRecommendedData(recommended);
     if (mainElRef.current) {
       mainElRef.current.scroll({
@@ -699,14 +792,14 @@ const Movie = () => {
 
         const results = await Promise.allSettled([
           axios.get(
-            `http://localhost:3000/${mediaTypeEndpoint}/${details.id}?l=${lang}`,
+            `http://localhost:3000/${mediaTypeEndpoint}/${details.id}?l=${lang}`
           ),
           axios.get(
-            `http://localhost:3000/recommended/${details.id}?k=${media_type}&l=${lang}`,
+            `http://localhost:3000/recommended/${details.id}?k=${media_type}&l=${lang}`
           ),
           // NEW: Fetch credits data
           axios.get(
-            `http://localhost:3000/${media_type}/${details.id}/credits?l=${lang}`,
+            `http://localhost:3000/${media_type}/${details.id}/credits?l=${lang}`
           ),
         ]);
 
@@ -791,7 +884,7 @@ const Movie = () => {
             lang,
             `حدث خطأ اثناء تحميل المعلومات. أعد المحاولة!`,
             ` Could not load movie details.\n
-          Try refreshing the page again please.`,
+          Try refreshing the page again please.`
           )}
         </p>
         <button
@@ -824,6 +917,8 @@ const Movie = () => {
         errLoading={errLoadingMediaDetails}
         media_type={media_type}
         lang={lang}
+        setShowShareComponent={setShowShareComponent}
+        showShareComponent={showShareComponent}
         mediaKeywords={mediaKeywords}
       />
 
@@ -888,7 +983,7 @@ const Movie = () => {
                 ) : (
                   <h3>
                     {currentSeasonIfo?.episodes?.find(
-                      (e) => e.episode_number === currentEpisodeNum,
+                      (e) => e.episode_number === currentEpisodeNum
                     )?.name ||
                       getTextByLang(lang, "اختر حلقة", "Select an Episode")}
                   </h3>
