@@ -13,6 +13,10 @@ A web application to browse and discover movies, TV series, and characters.
 * **Classic Discovery:** Browse popular, top-rated, and trending titles or search directly for any movie, series, or person.
 * **Theme Toggle:** Switch between light and dark modes.
 
+## Demo 
+
+![Project Demo](https://github.com/bassemsaeed/the-movie-site/raw/main/assets/demo.gif)
+
 
 ## How It Works
 

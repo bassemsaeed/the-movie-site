@@ -51,9 +51,6 @@ const Episode = React.memo(
 
     const getEpisodeData = useCallback(
       async (controller) => {
-        console.log(
-          `http://localhost:3000/episode/${seriesId}/${seasonNum}/${episodeNum}${lang === "ar" ? "?l=ar" : ""}`,
-        );
         try {
           setLoading(true);
           setError(null);

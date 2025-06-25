@@ -29,12 +29,10 @@ const BASE_IMAGE_URL = "https://image.tmdb.org/t/p/";
 const getImageUrl = (
   path,
   size = "original",
-  fallback = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAWlBMVEXv8fNod4f19vhkdIRcbX52g5KPmqX29/iYoq3l6OuCj5vd4eTr7fBfcIFaa33M0dbBx82SnKe7wchtfIt8iZejq7TU2N2Ik6CwuL/Gy9Gqsrqbpa/P1NmhqrNz0egRAAADBklEQVR4nO3c63KqMBRAYUiwwUvEete27/+ax1tVAqhwEtnprO+XM62Oyw2CGTFJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJe6Mb5vqL7jjsws/wgln/dddzBZZjocuxj2HaiWNg1JL/oO3GVBA9PUzvvdF80q7AgPQ/zot1DlOnThyFBIIYWvFtrMK3mFdj30aWzFFWZjr+/qE4mFXh+YwrehsDMK34bCzmIoVEad1nC6PbD8QpXMNwOdDvKi2xMUX2jm2h7/onU2WHcZo/RCld8WN3TWZR1CeKH6LK1tTGftE2UXqpmzPGXbLwnKLkzcT8X6s/UQRReqWWX9LWs9RNGF5qOysmFb74miC9XCDUzt6k8VJtXC9jsihW9Tu5Uuq/vhvlKokuGjc1bRhWZVLdw5MWq8mU6zfNL4wKILk/W0spW6dyvOZ61p4wKd7EIzcoZot+UQVVxeA62bEmUXJuPyIV8PnDsVtxXtpikKL1S7++1U6/IZzV1g8xSFFx4i9HWMdjksNZQCGxOlFyZq8jW1VmubpZV90PngUZ8ovvDYuNt//Wy/1ZPAhsQICo+rUMa4T70msP7tJorCun8vKofKhilGWlg7wfopxlnYMMHaKUZZ2DjBuinGWPgwsDLFCAufBLqJ8RU+DXQ21OgKXwgsTzG2wpcCj1O8nsJGVvjgMNE0xbgKX5zgeYqXxKgKX57geYrnDTWmwhYTvJtiRIUtA3/fbuIpbB14mWI0hR0Cz1OMpbBT4CkxiaOwY+BpQ42isNVhwk283hJc2HmC5Va5hf8xwTgK/UxQcKGvQLGF3gKlFvoLFFroMVBmoc9AkYWeDhNyC1Xh9aJLeYV+Jyiw0Os+KLHQe6C0Qv+BwgoDBMoqDBEoqtCECJRUOPz2e5gQV2jnYa7qllOYBvr5CEGFgVBIIYXPmJ/ghZueZ+hexOWd+w3q9ycuwg5R2377DsapDflbX7rTFah+TbajQSij/aT/wNNF26FUvoELAAAAAAAAAAAAAAAAAAAAAAAAAAAA4G/4B9L3P1vg3y4/AAAAAElFTkSuQmCC"
+  fallback = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAWlBMVEXv8fNod4f19vhkdIRcbX52g5KPmqX29/iYoq3l6OuCj5vd4eTr7fBfcIFaa33M0dbBx82SnKe7wchtfIt8iZejq7TU2N2Ik6CwuL/Gy9Gqsrqbpa/P1NmhqrNz0egRAAADBklEQVR4nO3c63KqMBRAYUiwwUvEete27/+ax1tVAqhwEtnprO+XM62Oyw2CGTFJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJe6Mb5vqL7jjsws/wgln/dddzBZZjocuxj2HaiWNg1JL/oO3GVBA9PUzvvdF80q7AgPQ/zot1DlOnThyFBIIYWvFtrMK3mFdj30aWzFFWZjr+/qE4mFXh+YwrehsDMK34bCzmIoVEad1nC6PbD8QpXMNwOdDvKi2xMUX2jm2h7/onU2WHcZo/RCld8WN3TWZR1CeKH6LK1tTGftE2UXqpmzPGXbLwnKLkzcT8X6s/UQRReqWWX9LWs9RNGF5qOysmFb74miC9XCDUzt6k8VJtXC9jsihW9Tu5Uuq/vhvlKokuGjc1bRhWZVLdw5MWq8mU6zfNL4wKILk/W0spW6dyvOZ61p4wKd7EIzcoZot+UQVVxeA62bEmUXJuPyIV8PnDsVtxXtpikKL1S7++1U6/IZzV1g8xSFFx4i9HWMdjksNZQCGxOlFyZq8jW1VmubpZV90PngUZ8ovvDYuNt//Wy/1ZPAhsQICo+rUMa4T70msP7tJorCun8vKofKhilGWlg7wfopxlnYMMHaKUZZ2DjBuinGWPgwsDLFCAufBLqJ8RU+DXQ21OgKXwgsTzG2wpcCj1O8nsJGVvjgMNE0xbgKX5zgeYqXxKgKX57geYrnDTWmwhYTvJtiRIUtA3/fbuIpbB14mWI0hR0Cz1OMpbBT4CkxiaOwY+BpQ42isNVhwk283hJc2HmC5Va5hf8xwTgK/UxQcKGvQLGF3gKlFvoLFFroMVBmoc9AkYWeDhNyC1Xh9aJLeYV+Jyiw0Os+KLHQe6C0Qv+BwgoDBMoqDBEoqtCECJRUOPz2e5gQV2jnYa7qllOYBvr5CEGFgVBIIYXPmJ/ghZueZ+hexOWd+w3q9ycuwg5R2377DsapDflbX7rTFah+TbajQSij/aT/wNNF26FUvoELAAAAAAAAAAAAAAAAAAAAAAAAAAAA4G/4B9L3P1vg3y4/AAAAAElFTkSuQmCC",
 ) => {
   return path ? `${BASE_IMAGE_URL}${size}${path}` : fallback;
 };
-
-
 
 const ActorCard = React.memo(({ actor }) => {
   return (
@@ -101,7 +99,7 @@ const CreditsSection = React.memo(({ credits, loading, error, lang }) => {
     credits?.crew.filter((member) => keyJobs.includes(member.job)) || [];
 
   const uniqueCrew = Array.from(
-    new Map(keyCrew.map((item) => [item["id"], item])).values()
+    new Map(keyCrew.map((item) => [item["id"], item])).values(),
   );
 
   return (
@@ -215,7 +213,7 @@ const MediaHeder = React.memo(
                     {getTextByLang(
                       lang,
                       "لقد حدث خطأ",
-                      "An unexpected error has happend"
+                      "An unexpected error has happend",
                     )}
                   </div>
                 ) : (
@@ -239,7 +237,7 @@ const MediaHeder = React.memo(
                       {getTextByLang(
                         lang,
                         "لقد حدث خطأ",
-                        "An unexpected error has happend"
+                        "An unexpected error has happend",
                       )}
                     </div>
                   ) : (
@@ -247,7 +245,7 @@ const MediaHeder = React.memo(
                       {getTextByLang(
                         lang,
                         media.overview || "لايوجد وصف متاح باللغة العربية.",
-                        media.overview || "No overview available in english."
+                        media.overview || "No overview available in english.",
                       )}
                     </p>
                   )}
@@ -294,7 +292,7 @@ const MediaHeder = React.memo(
         </div>
       </div>
     );
-  }
+  },
 );
 
 const MediaStats = React.memo(({ media, media_type }) => {
@@ -313,7 +311,7 @@ const MediaStats = React.memo(({ media, media_type }) => {
           label={getTextByLang(
             lang,
             media_type === "movie" ? "مدة الفيلم" : "المواسم",
-            media_type === "movie" ? "RUNTIME" : "SEASONS"
+            media_type === "movie" ? "RUNTIME" : "SEASONS",
           )}
           value={
             media_type === "movie"
@@ -378,12 +376,12 @@ const ActionButtons = ({
   const [errCopying, setErrCopying] = useState(false);
 
   useLayoutEffect(() => {
-    const liked = JSON.parse(localStorage.getItem("likedMedia") || [])?.find(
-      (item) => item?.id === media?.id
+    const liked = JSON.parse(localStorage.getItem("likedMedia") || "[]")?.find(
+      (item) => item?.id === media?.id,
     );
 
     const IS_SAVED_IN_WATCHLATER = JSON.parse(
-      localStorage.getItem("watchLaterMedia") || []
+      localStorage.getItem("watchLaterMedia") || "[]",
     ).find((item) => item?.id === media?.id);
 
     if (IS_SAVED_IN_WATCHLATER) {
@@ -400,12 +398,13 @@ const ActionButtons = ({
       <button
         className="flex items-center justify-center gap-2 outline-none select-none py-2 px-5 rounded-lg bg-rose-500 hover:bg-rose-600 duration-150 font-semibold text-white cursor-pointer shadow-lg shadow-rose-500/20"
         onClick={() => {
-          const storedLikedMedia =
-            JSON.parse(localStorage.getItem("likedMedia")) || [];
+          const storedLikedMedia = JSON.parse(
+            localStorage.getItem("likedMedia") || "[]",
+          );
 
           if (isLiked) {
             const newLikedList = storedLikedMedia.filter(
-              (item) => item.id !== media.id
+              (item) => item.id !== media.id,
             );
             localStorage.setItem("likedMedia", JSON.stringify(newLikedList));
             setIsLiked(false);
@@ -425,7 +424,7 @@ const ActionButtons = ({
             storedLikedMedia.push(media);
             localStorage.setItem(
               "likedMedia",
-              JSON.stringify(storedLikedMedia)
+              JSON.stringify(storedLikedMedia),
             );
             setIsLiked(true);
           }
@@ -444,16 +443,17 @@ const ActionButtons = ({
       <button
         className="flex items-center justify-center gap-2 outline-none select-none py-2 px-5 rounded-lg bg-neutral-700 hover:bg-neutral-800 dark:bg-neutral-800 dark:hover:bg-neutral-700 duration-150 font-semibold text-white cursor-pointer shadow-lg shadow-black/10"
         onClick={() => {
-          const WATCHLATER_LIST =
-            JSON.parse(localStorage.getItem("watchLaterMedia")) || [];
+          const WATCHLATER_LIST = JSON.parse(
+            localStorage.getItem("watchLaterMedia") || "[]",
+          );
 
           if (isSavedInWatchLater) {
             const UPDATED_WATCHLATER_LIST = WATCHLATER_LIST.filter(
-              (item) => item?.id !== media?.id
+              (item) => item?.id !== media?.id,
             );
             localStorage.setItem(
               "watchLaterMedia",
-              JSON.stringify(UPDATED_WATCHLATER_LIST)
+              JSON.stringify(UPDATED_WATCHLATER_LIST),
             );
             setIsSavedInWatchLater(false);
           } else {
@@ -471,7 +471,7 @@ const ActionButtons = ({
             WATCHLATER_LIST.push(media);
             localStorage.setItem(
               "watchLaterMedia",
-              JSON.stringify(WATCHLATER_LIST)
+              JSON.stringify(WATCHLATER_LIST),
             );
             setIsSavedInWatchLater(true);
           }
@@ -496,7 +496,7 @@ const ActionButtons = ({
           const shareText = getTextByLang(
             lang,
             `شاهد ${media_type === "tv" ? "مسلسل" : "فيلم"} ${media.title || media.name}!`,
-            `Watch this ${media_type === "tv" ? "series" : "movie"} (${media.title || media.name})!`
+            `Watch this ${media_type === "tv" ? "series" : "movie"} (${media.title || media.name})!`,
           );
 
           const mediaToShare = {
@@ -556,7 +556,7 @@ const MovieCard = ({ movie }) => {
           className="aspect-[2/3] w-full bg-neutral-200 dark:bg-neutral-800 rounded-lg overflow-hidden relative"
           onClick={() => {
             navigate(
-              `/${movie.media_type === "movie" ? "movies" : "series"}/${movie.id}${lang === "ar" ? "?l=ar" : ""}`
+              `/${movie.media_type === "movie" ? "movies" : "series"}/${movie.id}${lang === "ar" ? "?l=ar" : ""}`,
             );
           }}
         >
@@ -792,14 +792,14 @@ const Movie = () => {
 
         const results = await Promise.allSettled([
           axios.get(
-            `http://localhost:3000/${mediaTypeEndpoint}/${details.id}?l=${lang}`
+            `http://localhost:3000/${mediaTypeEndpoint}/${details.id}?l=${lang}`,
           ),
           axios.get(
-            `http://localhost:3000/recommended/${details.id}?k=${media_type}&l=${lang}`
+            `http://localhost:3000/recommended/${details.id}?k=${media_type}&l=${lang}`,
           ),
           // NEW: Fetch credits data
           axios.get(
-            `http://localhost:3000/${media_type}/${details.id}/credits?l=${lang}`
+            `http://localhost:3000/${media_type}/${details.id}/credits?l=${lang}`,
           ),
         ]);
 
@@ -884,7 +884,7 @@ const Movie = () => {
             lang,
             `حدث خطأ اثناء تحميل المعلومات. أعد المحاولة!`,
             ` Could not load movie details.\n
-          Try refreshing the page again please.`
+          Try refreshing the page again please.`,
           )}
         </p>
         <button
@@ -983,7 +983,7 @@ const Movie = () => {
                 ) : (
                   <h3>
                     {currentSeasonIfo?.episodes?.find(
-                      (e) => e.episode_number === currentEpisodeNum
+                      (e) => e.episode_number === currentEpisodeNum,
                     )?.name ||
                       getTextByLang(lang, "اختر حلقة", "Select an Episode")}
                   </h3>

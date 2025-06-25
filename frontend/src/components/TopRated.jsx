@@ -249,12 +249,12 @@ const MovieCard = ({
 
   useEffect(() => {
     const IS_SAVED_IN_WATCHLATER = JSON.parse(
-      localStorage.getItem("watchLaterMedia") || [],
+      localStorage.getItem("watchLaterMedia") || "[]",
     ).find((item) => item?.id === id);
 
-    const IS_IN_LIKED = JSON.parse(localStorage.getItem("likedMedia"))?.find(
-      (item) => item?.id === id,
-    );
+    const IS_IN_LIKED = JSON.parse(
+      localStorage.getItem("likedMedia") || "[]",
+    )?.find((item) => item?.id === id);
 
     if (IS_SAVED_IN_WATCHLATER) {
       setIsSavedInWatchLater(true);
@@ -303,8 +303,9 @@ const MovieCard = ({
               <button
                 className="bg-black/15 py-1.5 px-3 rounded-sm cursor-pointer dark:bg-white/15 dark:text-white"
                 onClick={() => {
-                  const WATCHLATER_LIST =
-                    JSON.parse(localStorage.getItem("watchLaterMedia")) || [];
+                  const WATCHLATER_LIST = JSON.parse(
+                    localStorage.getItem("watchLaterMedia") || "[]",
+                  );
 
                   if (isSavedInWatchLater) {
                     const UPDATED_WATCHLATER_LIST = WATCHLATER_LIST.filter(
@@ -377,8 +378,9 @@ const MovieCard = ({
               <button
                 className="bg-rose-500/75  hover:bg-rose-500/90 transition-all duration-100 py-1.5 px-3 rounded-sm text-white cursor-pointer flex flex-row gap-2 items-center justify-center"
                 onClick={() => {
-                  const storedLikedMedia =
-                    JSON.parse(localStorage.getItem("likedMedia")) || [];
+                  const storedLikedMedia = JSON.parse(
+                    localStorage.getItem("likedMedia") || "[]",
+                  );
                   if (isLiked) {
                     const newFilteredMedia = storedLikedMedia.filter(
                       (item) => item.id !== id,

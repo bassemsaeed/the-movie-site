@@ -15,22 +15,22 @@ const shuffleArray = (array) => {
 };
 
 function getNoDublicateMovAndseriesArr() {
-  const LIKED_MEDIA = JSON.parse(localStorage.getItem("likedMedia") || []);
+  const LIKED_MEDIA = JSON.parse(localStorage.getItem("likedMedia") || "[]");
   const SAVED_IN_WATCH_LATER =
-    JSON.parse(localStorage.getItem("watchLaterMedia")) || [];
+    JSON.parse(localStorage.getItem("watchLaterMedia")) || "[]";
 
   const likedMediaIds = new Set(LIKED_MEDIA.map((item) => item.id));
   const noDuplicateMediaList = LIKED_MEDIA.concat(
-    SAVED_IN_WATCH_LATER.filter((wl_item) => !likedMediaIds.has(wl_item.id))
+    SAVED_IN_WATCH_LATER.filter((wl_item) => !likedMediaIds.has(wl_item.id)),
   );
 
   return noDuplicateMediaList;
 }
 
 function getCommonPreferredGenres() {
-  const LIKED_MEDIA = JSON.parse(localStorage.getItem("likedMedia") || []);
+  const LIKED_MEDIA = JSON.parse(localStorage.getItem("likedMedia") || "[]");
   const SAVED_IN_WATCH_LATER = JSON.parse(
-    localStorage.getItem("watchLaterMedia") || []
+    localStorage.getItem("watchLaterMedia") || "[]",
   );
 
   // if no user preferred/liked data return most likely genres to be liked by user (famous most preferred genres)
@@ -115,11 +115,11 @@ function getCommonPreferredGenres() {
     ];
 
     const tmdbWiGenresFilterInput = MOST_LIKELY_TO_BE_LIKED_GENRES.map(
-      (g) => g.id
+      (g) => g.id,
     ).join("|");
 
     const tmdbWiKeywordsFilterInput = MOST_LIKELY_TO_BE_LIKED_KEYWORDS.map(
-      (K) => K.id
+      (K) => K.id,
     ).join("|");
 
     return {
@@ -151,7 +151,7 @@ function getCommonPreferredGenres() {
   }, new Map());
 
   const sortedGenresIdsInfoArr = Array.from(genresIdsInfoMap).sort(
-    (a, b) => b[1].count - a[1].count
+    (a, b) => b[1].count - a[1].count,
   );
 
   const TOP_THREE_GENRES = sortedGenresIdsInfoArr
@@ -177,7 +177,7 @@ function getCommonPreferredGenres() {
   // A MAP FOR EACH KEYWORD ID, STORES HOW MANY TIMES AN KEYWORD ID WAS PRESENT IN THE KEYWORD IDS LIST; BIGGER NUMBER MEANS GENERAL INTEREST IN A SPECIFIC KEYWORD AND THATS WHAT WOULD DETERMINE WHAT IS GOING TO BE RECOMMENDED AND HOW MUCH IS IT RECOMMENDED
 
   const allKeywordsIds = noDuplicateMediaList?.flatMap((item) =>
-    item.mediaKeywords?.map((kword) => kword.id)
+    item.mediaKeywords?.map((kword) => kword.id),
   );
 
   const keywordsIdsInfoMap = allKeywordsIds.reduce((kwordsIdsMap, kwordId) => {
@@ -191,7 +191,7 @@ function getCommonPreferredGenres() {
   }, new Map());
 
   const sortedKwordsIdsArr = Array.from(keywordsIdsInfoMap).sort(
-    (a, b) => b[1].count - a[1].count
+    (a, b) => b[1].count - a[1].count,
   );
 
   const with_keywords_filter =
@@ -201,11 +201,6 @@ function getCommonPreferredGenres() {
           .map((kword) => kword[0])
           .join("|")
       : sortedKwordsIdsArr.map((kword) => kword[0]).join("|");
-
-  console.log({
-    with_genres: with_genres_filter,
-    with_keywords: with_keywords_filter,
-  });
 
   return {
     with_genres: with_genres_filter,
@@ -249,7 +244,7 @@ const ForYouCard = ({ item }) => {
             {getTextByLang(
               lang,
               item.mediaType === "movies" ? "فيلم" : "مسلسل",
-              item.mediaType === "movies" ? "Movie" : "TV Series"
+              item.mediaType === "movies" ? "Movie" : "TV Series",
             )}
           </h2>
           <div className="flex items-center mt-1 text-xs text-gray-300 drop-shadow-md">
@@ -273,7 +268,6 @@ export const ForYou = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [errLoadingForYouData, setErrLoadingForYouData] = useState(null);
   const [totalPages, setTotalPages] = useState(null);
-  const [isEndElIntersecting, setIsEndElIntersecting] = useState(false);
   const mainContainerRef = useRef(null);
   const endElement = useRef(null);
 
@@ -285,7 +279,6 @@ export const ForYou = () => {
     }
     setErrLoadingForYouData(null);
 
-    console.log(getCommonPreferredGenres());
     const { with_genres, with_keywords } = getCommonPreferredGenres();
     const baseUrl = "http://localhost:3000";
     const moviesUrl = `/discover/movie?genres=${with_genres}&keywords=${with_keywords}&page=${currentPage}&l=${lang}`;
@@ -316,7 +309,7 @@ export const ForYou = () => {
         if (haveMovies && haveSeries) {
           finalTotalPages = Math.min(
             movies.value.data.total_pages,
-            series.value.data.total_pages
+            series.value.data.total_pages,
           );
           const movieResults = movies.value.data.results.map((item) => ({
             ...item,
@@ -344,19 +337,19 @@ export const ForYou = () => {
         if (currentPage === 1) {
           setTotalPages(finalTotalPages);
           const allLikedAndSavedMediaIds = new Set(
-            getNoDublicateMovAndseriesArr().map((item) => item.id)
+            getNoDublicateMovAndseriesArr().map((item) => item.id),
           );
           const finalFilteredResults = allResults.filter(
-            (item) => !allLikedAndSavedMediaIds.has(item.id)
+            (item) => !allLikedAndSavedMediaIds.has(item.id),
           );
 
           setForyouData(finalFilteredResults);
         } else {
           const allLikedAndSavedMediaIds = new Set(
-            getNoDublicateMovAndseriesArr().map((item) => item.id)
+            getNoDublicateMovAndseriesArr().map((item) => item.id),
           );
           const finalFilteredResults = allResults.filter(
-            (item) => !allLikedAndSavedMediaIds.has(item.id)
+            (item) => !allLikedAndSavedMediaIds.has(item.id),
           );
           setForyouData((prevData) => [...prevData, ...finalFilteredResults]);
         }
@@ -382,7 +375,6 @@ export const ForYou = () => {
         const entry = entries[0];
         // If the element is intersecting and we haven't reached the last page
         if (entry.isIntersecting && currentPage < totalPages) {
-          console.log("End element visible, fetching next page...");
           setCurrentPage((prevPage) => prevPage + 1);
         }
       };
@@ -417,7 +409,7 @@ export const ForYou = () => {
               {getTextByLang(
                 lang,
                 "لقد حدث خطأ اثناء جلب المعلومات.",
-                "An unexpected error has happened."
+                "An unexpected error has happened.",
               )}
             </div>
             <button
@@ -496,7 +488,7 @@ export const ForYou = () => {
               {getTextByLang(
                 lang,
                 "لم يتم العثور على نتائج, جرب اضافة أي فيلم أو مسلسل لقائمة الاعجاب او المشاهده لاحقا!",
-                "No results found, try liking and saving any movie/series!"
+                "No results found, try liking and saving any movie/series!",
               )}
             </div>
           </div>

@@ -37,7 +37,7 @@ const Trending = () => {
   const idOfMovieOrSeries = data?.results[currentTrendingIndex]?.id;
 
   useEffect(() => {
-    const liked = JSON.parse(localStorage.getItem("likedMedia"))?.find(
+    const liked = JSON.parse(localStorage.getItem("likedMedia") || "[]")?.find(
       (item) => item.id === data?.results[currentTrendingIndex].id,
     );
 
@@ -266,8 +266,9 @@ const Trending = () => {
                 <button
                   className="px-3 cursor-pointer rounded-lg bg-rose-600/45 max-w-fit hover:bg-rose-600/80 h-10/12 transition-all duration-150 text-white font-ar text-sm"
                   onClick={() => {
-                    const storedLikedMedia =
-                      JSON.parse(localStorage.getItem("likedMedia")) || [];
+                    const storedLikedMedia = JSON.parse(
+                      localStorage.getItem("likedMedia") || "[]",
+                    );
 
                     const currentMediaItem =
                       data?.results[currentTrendingIndex];

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion} from "framer-motion";
+import { motion } from "framer-motion";
 import { Send, Link, Copy, Check, X } from "lucide-react";
 import useTheme from "../hooks/useTheme";
 import { getTextByLang } from "../utils";
@@ -70,8 +70,8 @@ const ShareComponent = ({ title, url, mediaType }) => {
     getTextByLang(
       lang,
       `شاهد ${mediaType === "tv" ? " مسلسل " : " فيلم "} ${title} ! `,
-      `Watch this ${mediaType === "tv" ? "series (" : "movie ("} ${title}) ! `
-    )
+      `Watch this ${mediaType === "tv" ? "series (" : "movie ("} ${title}) ! `,
+    ),
   );
 
   const shareLinks = [
@@ -161,7 +161,7 @@ const ShareComponent = ({ title, url, mediaType }) => {
         {getTextByLang(
           lang,
           `شارك ال${mediaType === "tv" ? "مسلسل" : "فيلم"} مع أصدقائك`,
-          `Share this ${mediaType === "tv" ? "series" : "movie"} with your friends!`
+          `Share this ${mediaType === "tv" ? "series" : "movie"} with your friends!`,
         )}
       </h3>
 
