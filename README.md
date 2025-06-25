@@ -1,126 +1,83 @@
 # the-movie-site
-An app to discover movies, series and characters.
 
+A web application to browse and discover movies, TV series, and characters.
 
-## Key Features
+## Features
 
-*   **AI-Powered Search:** Go beyond simple text search. Ask for movies in natural language!
-    *   *""A mind-bending sci-fi movie like Inception but with a romantic subplot.""*
-    *   *""A funny, light-hearted detective series set in the 90s.""*
-    *   *""Visually stunning animated films that are not for kids.""*
-    *   **Note:** To manage API costs and ensure fair usage, the AI search feature is currently rate-limited to **15 requests per user, per day**.
+* **AI Search:** Enter natural-language queries to find content (for example, "mind-bending sci-fi with a romantic subplot").
 
-*   **Content-Based Recommendations:** Get suggestions tailored to your taste. The system analyzes the genres and keywords of movies you've liked and saved to recommend similar content.
-*   **Watchlist & Favorites:** Keep track of what you want to watch and what you love. Your interactions directly fuel the recommendation engine.
-*   **Comprehensive Media Details:** View detailed information for every movie, series, and person, including cast, crew, trailers, and ratings, all sourced from TMDB.
-*   **Standard Search & Discovery:** Browse popular, top-rated, and trending content, or perform a classic search for any movie, series, or person.
-*   **Dark/Light Mode:** Switch between themes for your viewing comfort.
-
----
-
-## 🎥 Demo
-
-
-![Demo GIF](https://raw.githubusercontent.com/bassemsaeed/the-movie-site/main/assets/demo.gif)
-
+  * Rate-limited to 15 AI searches per user per day.
+* **Personalized Recommendations:** Suggestions based on the genres and keywords of titles you like or save.
+* **Watchlist & Favorites:** Track titles you plan to watch and mark favorites to improve recommendations.
+* **Media Details:** View cast, crew, trailers, ratings, and more from TMDB.
+* **Classic Discovery:** Browse popular, top-rated, and trending titles or search directly for any movie, series, or person.
+* **Theme Toggle:** Switch between light and dark modes.
 
 
 ## How It Works
 
-The application's intelligence is driven by two custom systems:
+### AI Search Pipeline
 
-### 1. The AI-Powered Search (Gemini + TMDB Pipeline)
+1. **User Query:** A natural-language prompt is sent to the backend.
+2. **Keyword Extraction:** Gemini API extracts potential movie-related keywords.
+3. **Keyword Verification:** Extracted keywords are looked up in TMDB to obtain official IDs.
+4. **Structured Query Generation:** Gemini receives verified keywords, their IDs, the original prompt, and TMDB genre data to generate a JSON query.
+5. **Content Discovery:** The JSON query powers TMDB’s `/discover` endpoint.
+6. **Result Display:** Relevant titles are returned and shown to the user.
 
-This is a multi-step process designed to turn a vague user idea into a precise list of movies.
+### Recommendation Engine
 
-1.  **User Prompt:** The user's natural language query (e.g., "dark comedy about a dysfunctional family") is sent to the backend.
-2.  **Initial Keyword Extraction (Gemini Step 1):** The backend first asks the Gemini API to extract potential movie-related keywords from the prompt.
-3.  **Keyword Verification (TMDB):** The extracted keywords (e.g., "dark comedy", "family") are then searched against the TMDB API to verify their existence and retrieve their official IDs. This step grounds the AI's output in real-world data.
-4.  **Intelligent Query Generation (Gemini Step 2):** The verified keywords, their IDs, the original user prompt, and a full list of TMDB genres are sent back to Gemini. In this second, more informed request, Gemini is tasked with creating a structured JSON object containing the most likely genres and keywords for the user's request.
-5.  **Targeted Discovery (TMDB):** The final JSON from Gemini is used to build a precise query for TMDB's `/discover` endpoint, filtering by the identified genres and keywords.
-6.  **Display Results:** The highly relevant results from TMDB are sent to the frontend and displayed to the user.
+1. **Data Collection:** The app collects movies and series you have liked or saved.
+2. **Feature Extraction:** It identifies your top genres and keywords.
+3. **Query TMDB:** It searches TMDB for titles matching those features, excluding items you’ve already viewed.
+4. **Display Suggestions:** New, relevant recommendations are presented.
 
-### 2. The Content-Based Recommendation System
+## Technology Stack
 
-1.  **Data Collection:** The system gathers all movies/series a user has added to their "Liked" and "Saved" lists.
-2.  **Feature Extraction:** It processes this data to find the most frequently occurring **genres** and **keywords**.
-3.  **Recommendation Generation:** It queries the TMDB API for other titles that match the user's top genres and keywords, while filtering out anything the user has already interacted with.
-4.  **Display Suggestions:** These new, relevant suggestions are presented to the user.
+* **Frontend:** React, React Router, Tailwind CSS
+* **Backend:** Node.js, Express.js
+* **AI Models:** Google Gemini
+* **Hosting:** AWS EC2 (backend), Vercel (frontend)
 
+## Setup and Installation
 
+1. **Clone the repository:**
 
+   ```bash
+   git clone https://github.com/bassemsaeed/the-movie-site.git
+   cd the-movie-site
+   ```
+2. **Install backend dependencies:**
 
-## Tech Stack
+   ```bash
+   cd backend
+   npm install
+   ```
+3. **Install frontend dependencies:**
 
-- React, React Router and Tailwind css for frontend.
-- Express js for backend
-- Gemini Ai models
-- Backend Deployment on AWS EC2
-- Frontend On Vercel
+   ```bash
+   cd ../frontend
+   npm install
+   ```
+4. **Configure environment variables:**
+   Create a `.env` file in the `backend` directory with:
 
-
-
-## Getting Started
-
-Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
-
-### Installation
-
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/bassemsaeed/the-movie-site.git
-    cd [the-movie-site]
-    ```
-
-2.  **Set up the Backend:**
-    ```bash
-    cd backend
-    npm install
-    ```
-
-3.  **Set up the Frontend:**
-    ```bash
-    cd ../frontend
-    npm install
-    ```
-
-4.  **Environment Variables:**
-    You will need to create a `.env` file in the `backend` directory. Get your API keys from the respective services.
    ```ini
+   TMDB_API_KEY=your_tmdb_api_key
+   GEMINI_API_KEY=your_google_ai_key
+   ```
+5. **Run the application:**
 
-    # TMDB API Key (v3 Auth)
-    TMDB_API_KEY="your_tmdb_api_key"
+   ```bash
+   # Start backend
+   cd backend && npm run dev
 
-    # Google Gemini API Key
-    GEMINI_API_KEY="your_google_ai_studio_key"
-
-    
-    ```
-   
-    
-### Running the Application
-
-1.  **Start the backend server:**
-    ```bash
-    cd backend
-    npm run dev
-    ```
-
-2.  **Start the frontend development server:**
-    ```bash
-    cd frontend
-    npm run dev
-    ```
-
-3.  Open your browser and navigate to `http://localhost:5173` (or your frontend's default port).
-
-
+   # Start frontend
+   cd ../frontend && npm run dev
+   ```
+6. **Access the app:**
+   Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## License
 
 This project is licensed under the MIT License.
-
-
-
-
-

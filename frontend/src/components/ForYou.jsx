@@ -15,7 +15,7 @@ const shuffleArray = (array) => {
 };
 
 function getNoDublicateMovAndseriesArr() {
-  const LIKED_MEDIA = JSON.parse(localStorage.getItem("likedMedia")) || [];
+  const LIKED_MEDIA = JSON.parse(localStorage.getItem("likedMedia") || []);
   const SAVED_IN_WATCH_LATER =
     JSON.parse(localStorage.getItem("watchLaterMedia")) || [];
 
@@ -28,9 +28,10 @@ function getNoDublicateMovAndseriesArr() {
 }
 
 function getCommonPreferredGenres() {
-  const LIKED_MEDIA = JSON.parse(localStorage.getItem("likedMedia")) || [];
-  const SAVED_IN_WATCH_LATER =
-    JSON.parse(localStorage.getItem("watchLaterMedia")) || [];
+  const LIKED_MEDIA = JSON.parse(localStorage.getItem("likedMedia") || []);
+  const SAVED_IN_WATCH_LATER = JSON.parse(
+    localStorage.getItem("watchLaterMedia") || []
+  );
 
   // if no user preferred/liked data return most likely genres to be liked by user (famous most preferred genres)
 
@@ -153,17 +154,21 @@ function getCommonPreferredGenres() {
     (a, b) => b[1].count - a[1].count
   );
 
-  const TOP_THREE_GENRES =
-    sortedGenresIdsInfoArr
-      ?.slice(0, 2)
-      ?.map((g) => `${g[0]}`);
+  const TOP_THREE_GENRES = sortedGenresIdsInfoArr
+    ?.slice(0, 2)
+    ?.map((g) => `${g[0]}`);
   const with_genres_filter =
     sortedGenresIdsInfoArr.length > 3
-      ? TOP_THREE_GENRES[0] + ","+
+      ? TOP_THREE_GENRES[0] +
+        "," +
         sortedGenresIdsInfoArr
           .slice(2)
           .map((g) => g[0])
-          .join("|") + "|" + TOP_THREE_GENRES[1] + "," +sortedGenresIdsInfoArr
+          .join("|") +
+        "|" +
+        TOP_THREE_GENRES[1] +
+        "," +
+        sortedGenresIdsInfoArr
           .slice(2)
           .map((g) => g[0])
           .join("|")
@@ -273,7 +278,6 @@ export const ForYou = () => {
   const endElement = useRef(null);
 
   const fetchData = async () => {
-  
     if (currentPage === 1) {
       setLoadingForYouData(true);
     } else {
@@ -281,7 +285,7 @@ export const ForYou = () => {
     }
     setErrLoadingForYouData(null);
 
-    console.log(getCommonPreferredGenres())
+    console.log(getCommonPreferredGenres());
     const { with_genres, with_keywords } = getCommonPreferredGenres();
     const baseUrl = "http://localhost:3000";
     const moviesUrl = `/discover/movie?genres=${with_genres}&keywords=${with_keywords}&page=${currentPage}&l=${lang}`;
@@ -293,12 +297,10 @@ export const ForYou = () => {
         axios.get(baseUrl + seriesUrl),
       ]);
 
-     
       const movies = results[0];
       const series = results[1];
       const moviesFetchErr = movies.reason !== undefined;
       const seriesFetchErr = series.reason !== undefined;
-
 
       let allResults = [];
       let finalTotalPages = 0;
@@ -306,7 +308,6 @@ export const ForYou = () => {
       if (moviesFetchErr && seriesFetchErr) {
         setErrLoadingForYouData({ m: movies.reason, s: series.reason });
       } else {
-    
         const haveMovies =
           !moviesFetchErr && movies.value.data.results.length > 0;
         const haveSeries =
