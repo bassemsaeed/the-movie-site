@@ -23,7 +23,7 @@ const Trending = () => {
   const [errorLoadingMedia, setErrorLoadingMedia] = useState(null);
   const [currentIndexMedia, setCurrentIndexMedia] = useState(null);
   const { data, error, loading } = useFetch(
-    `${API_BASE_URL}/trending?k=${category}`,
+    `${API_BASE_URL}trending?k=${category}`,
     {
       lang,
       retryCount,
@@ -51,7 +51,7 @@ const Trending = () => {
     (async () => {
       try {
         const result = await axios.get(
-          `${API_BASE_URL}/${category === "movie" ? "movie" : "tv"}/${data?.results[currentTrendingIndex].id}/keywords`,
+          `${API_BASE_URL}${category === "movie" ? "movie" : "tv"}/${data?.results[currentTrendingIndex].id}/keywords`,
         );
 
         if (category === "movie") setMediaKeywords(result.data.keywords);
@@ -106,7 +106,7 @@ const Trending = () => {
 
       try {
         const response = await fetch(
-          `${API_BASE_URL}/media/${category}/${data?.results[currentTrendingIndex]?.id}`,
+          `${API_BASE_URL}media/${category}/${data?.results[currentTrendingIndex]?.id}`,
           {
             signal,
           },

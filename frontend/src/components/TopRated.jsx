@@ -28,7 +28,7 @@ const TopRated = React.memo(() => {
   const MAX_PAGE = 500;
   const MIN_PAGE = 1;
   const { data, error, loading } = useFetch(
-    `${API_BASE_URL}/top_rated?k=${chosenCategory}`,
+    `${API_BASE_URL}top_rated?k=${chosenCategory}`,
     {
       lang,
       retryCount,
@@ -326,7 +326,7 @@ const MovieCard = ({
 
                     axios
                       .get(
-                        `${API_BASE_URL}/${category === "movie" ? "movie" : "tv"}/${id}/keywords`,
+                        `${API_BASE_URL}${category === "movie" ? "movie" : "tv"}/${id}/keywords`,
                       )
                       .then((result) => {
                         if (category === "movie") {
@@ -399,7 +399,7 @@ const MovieCard = ({
 
                     axios
                       .get(
-                        `${API_BASE_URL}/${category === "movie" ? "movie" : "tv"}/${id}/keywords`,
+                        `${API_BASE_URL}${category === "movie" ? "movie" : "tv"}/${id}/keywords`,
                       )
                       .then((result) => {
                         if (category === "movie") {

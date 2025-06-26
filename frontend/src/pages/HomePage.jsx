@@ -41,7 +41,7 @@ function HomePage() {
         setLoadingResultsError(null); // Reset error before new attempt
         try {
           const response = await fetch(
-            `${API_BASE_URL}/search?q=${searchQuery}&l=${lang}`,
+            `${API_BASE_URL}search?q=${searchQuery}&l=${lang}`,
             { signal }, // Pass signal to fetch
           );
 

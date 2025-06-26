@@ -793,14 +793,14 @@ const Movie = () => {
 
         const results = await Promise.allSettled([
           axios.get(
-            `${API_BASE_URL}/${mediaTypeEndpoint}/${details.id}?l=${lang}`,
+            `${API_BASE_URL}${mediaTypeEndpoint}/${details.id}?l=${lang}`,
           ),
           axios.get(
-            `${API_BASE_URL}/recommended/${details.id}?k=${media_type}&l=${lang}`,
+            `${API_BASE_URL}recommended/${details.id}?k=${media_type}&l=${lang}`,
           ),
           // NEW: Fetch credits data
           axios.get(
-            `${API_BASE_URL}/${media_type}/${details.id}/credits?l=${lang}`,
+            `${API_BASE_URL}${media_type}/${details.id}/credits?l=${lang}`,
           ),
         ]);
 
@@ -846,7 +846,7 @@ const Movie = () => {
       if (lang === "ar") {
         params.append("l", "ar");
       }
-      const url = `${API_BASE_URL}/season/${mediaDetails.id}/${currentChosenSeason.season_number}?${params.toString()}`;
+      const url = `${API_BASE_URL}season/${mediaDetails.id}/${currentChosenSeason.season_number}?${params.toString()}`;
 
       try {
         setLoadingCurrentSeasonIfo(true);

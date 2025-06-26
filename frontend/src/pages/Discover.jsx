@@ -274,7 +274,7 @@ const DiscoverModal = ({ handleClose, setTmdbResults }) => {
     }
     setErrInPrompt(null);
     const eventSource = new EventSource(
-      `${API_BASE_URL}/airecommend?prompt=${userPrompt}`,
+      `${API_BASE_URL}airecommend?prompt=${userPrompt}`,
     );
     eventSource.onmessage = (e) => {
       const recieveData = JSON.parse(e.data);

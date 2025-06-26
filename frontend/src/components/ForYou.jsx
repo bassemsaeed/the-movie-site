@@ -283,8 +283,8 @@ export const ForYou = () => {
 
     const { with_genres, with_keywords } = getCommonPreferredGenres();
     const baseUrl = API_BASE_URL;
-    const moviesUrl = `/discover/movie?genres=${with_genres}&keywords=${with_keywords}&page=${currentPage}&l=${lang}`;
-    const seriesUrl = `/discover/tv?genres=${with_genres}&keywords=${with_keywords}&page=${currentPage}&l=${lang}`;
+    const moviesUrl = `discover/movie?genres=${with_genres}&keywords=${with_keywords}&page=${currentPage}&l=${lang}`;
+    const seriesUrl = `discover/tv?genres=${with_genres}&keywords=${with_keywords}&page=${currentPage}&l=${lang}`;
 
     try {
       const results = await Promise.allSettled([

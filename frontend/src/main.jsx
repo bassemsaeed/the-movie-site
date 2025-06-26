@@ -33,10 +33,10 @@ const router = createBrowserRouter([
       const lang = url.searchParams.get("l") === "ar" ? "ar" : "en";
 
       const response = await Promise.allSettled([
-        axios.get(`${API_BASE_URL}/movies/${movieId}?l=${lang}`),
-        axios.get(`${API_BASE_URL}/reviews/${movieId}?k=movie&l=${lang}`),
-        axios.get(`${API_BASE_URL}/recommended/${movieId}?k=movie&l=${lang}`),
-        axios.get(`${API_BASE_URL}/media/movie/${movieId}`),
+        axios.get(`${API_BASE_URL}movies/${movieId}?l=${lang}`),
+        axios.get(`${API_BASE_URL}reviews/${movieId}?k=movie&l=${lang}`),
+        axios.get(`${API_BASE_URL}recommended/${movieId}?k=movie&l=${lang}`),
+        axios.get(`${API_BASE_URL}media/movie/${movieId}`),
       ]);
 
       return { results: response, lang, media_type: "movie" };
@@ -52,10 +52,10 @@ const router = createBrowserRouter([
       const lang = url.searchParams.get("l") === "ar" ? "ar" : "en";
 
       const response = await Promise.allSettled([
-        axios.get(`${API_BASE_URL}/series/${seriesId}?l=${lang}`),
-        axios.get(`${API_BASE_URL}/reviews/${seriesId}?k=tv&l=${lang}`),
-        axios.get(`${API_BASE_URL}/recommended/${seriesId}?k=tv&l=${lang}`),
-        axios.get(`${API_BASE_URL}/media/tv/${seriesId}`),
+        axios.get(`${API_BASE_URL}series/${seriesId}?l=${lang}`),
+        axios.get(`${API_BASE_URL}reviews/${seriesId}?k=tv&l=${lang}`),
+        axios.get(`${API_BASE_URL}recommended/${seriesId}?k=tv&l=${lang}`),
+        axios.get(`${API_BASE_URL}media/tv/${seriesId}`),
       ]);
 
       return { results: response, lang, media_type: "tv" };

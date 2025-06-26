@@ -56,7 +56,7 @@ const Episode = React.memo(
           setLoading(true);
           setError(null);
           const { data } = await axios.get(
-            `${API_BASE_URL}/episode/${seriesId}/${seasonNum}/${episodeNum}${lang === "ar" ? "?l=ar" : ""}`,
+            `${API_BASE_URL}episode/${seriesId}/${seasonNum}/${episodeNum}${lang === "ar" ? "?l=ar" : ""}`,
             { signal: controller.signal },
           );
 
