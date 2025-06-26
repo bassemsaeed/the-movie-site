@@ -263,9 +263,8 @@ const DiscoverModal = ({ handleClose, setTmdbResults }) => {
     // This correctly identifies "+325", "123", and even "35 2 2" as "number-only" input.
     const isOnlyNumbersAndSigns = /^[+\-\d\s]+$/.test(trimmedPrompt);
 
-    // This regex checks if the prompt contains at least one letter.
-    const containsLetters = /[a-zA-Z]/.test(trimmedPrompt);
-
+    // This regex now checks if the prompt contains at least one letter FROM ANY LANGUAGE.
+    const containsLetters = /\p{L}/u.test(trimmedPrompt); 
     if (isOnlyNumbersAndSigns || trimmedPrompt.length < 3 || !containsLetters) {
       setErrInPrompt({
         en: "Please describe a mood, theme, or movie using words.",
