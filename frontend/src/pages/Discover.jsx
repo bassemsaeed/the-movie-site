@@ -53,7 +53,7 @@ const MediaCard = ({ item }) => {
       layout
       onClick={() => {
         navigate(
-          `/${item.mediaType === "tv" ? "series" : "movies"}/${item.id}`,
+          `/${item.mediaType === "tv" ? "series" : "movies"}/${item.id}`
         );
       }}
     >
@@ -126,24 +126,26 @@ const TabControls = memo(
               {getTextByLang(
                 lang,
                 `أفلام (${moviesCount})`,
-                `Movies (${moviesCount})`,
+                `Movies (${moviesCount})`
               )}
             </TabButton>
             <TabButton type="tv" isDisabled={seriesCount === 0}>
               {getTextByLang(
                 lang,
                 `مسلسلات (${seriesCount})`,
-                `Series (${seriesCount})`,
+                `Series (${seriesCount})`
               )}
             </TabButton>
           </div>
         </div>
         <div className="flex items-center justify-center pt-4">
-          <h2 className="font-bold dark:text-white text-4xl">{title}</h2>
+          <h2 className="font-bold dark:text-white text-4xl text-center">
+            {title}
+          </h2>
         </div>
       </div>
     );
-  },
+  }
 );
 
 const ResultsDisplay = ({
@@ -201,7 +203,7 @@ const ResultsDisplay = ({
             {getTextByLang(
               lang,
               "لم يتمكن الذكاء الاصطناعي من العثور على أي تطابق. حاول أن تكون أكثر تحديدًا أو عمومية!",
-              "AI couldn't find any matches. Try being a little more specific or general!",
+              "AI couldn't find any matches. Try being a little more specific or general!"
             )}
           </p>
         </div>
@@ -274,7 +276,7 @@ const DiscoverModal = ({ handleClose, setTmdbResults }) => {
     }
     setErrInPrompt(null);
     const eventSource = new EventSource(
-      `${API_BASE_URL}airecommend?prompt=${userPrompt}`,
+      `${API_BASE_URL}airecommend?prompt=${userPrompt}`
     );
     eventSource.onmessage = (e) => {
       const recieveData = JSON.parse(e.data);
@@ -333,7 +335,7 @@ const DiscoverModal = ({ handleClose, setTmdbResults }) => {
         {currentFeedbackFromAiEndpoint ? (
           <motion.div
             key={currentFeedbackFromAiEndpoint}
-            className="absolute top-10 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl font-semibold text-zinc-800 dark:text-zinc-200 p-2 px-4 rounded-lg shadow-lg border border-white/20 dark:border-zinc-700"
+            className="absolute top-10 sm:top-20 xs:top-32 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl font-semibold text-zinc-800 dark:text-zinc-200 p-2 px-4 rounded-lg shadow-lg h-fit text-center border border-white/20 dark:border-zinc-700"
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -357,7 +359,7 @@ const DiscoverModal = ({ handleClose, setTmdbResults }) => {
 
       <motion.div
         onClick={(e) => e.stopPropagation()}
-        className="relative bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl w-full max-w-xl rounded-xl shadow-2xl overflow-hidden border border-white/20 dark:border-zinc-700"
+        className="relative mt-10 sm:mt-20 xs:mt-32 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl w-full max-w-xl rounded-xl shadow-2xl overflow-hidden border border-white/20 dark:border-zinc-700"
         initial={{ scale: 0.95, y: -20, opacity: 0 }}
         animate={{ scale: 1, y: 0, opacity: 1 }}
         exit={{ scale: 0.95, y: -20, opacity: 0 }}
@@ -383,7 +385,7 @@ const DiscoverModal = ({ handleClose, setTmdbResults }) => {
             placeholder={getTextByLang(
               lang,
               "صف مزاجك، أجواء، أو فيلم...",
-              "Describe a mood, vibe, or movie...",
+              "Describe a mood, vibe, or movie..."
             )}
             className="w-full bg-transparent focus:outline-none text-lg text-gray-800 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-500 disabled:cursor-not-allowed"
             autoFocus
@@ -406,7 +408,7 @@ const DiscoverModal = ({ handleClose, setTmdbResults }) => {
             {getTextByLang(
               lang,
               "أو جرب أحد هذه الاقتراحات",
-              "Or try one of these",
+              "Or try one of these"
             )}
           </p>
           <ul>
@@ -451,7 +453,7 @@ const Discover = () => {
   const [modalOpen, setModalOpen] = useState(false);
 
   const [currentChosenCategory, setCurrentChosenCategory] = useState(
-    localStorage.getItem("category") || "tv",
+    localStorage.getItem("category") || "tv"
   );
   const [tmdbResults, setTmdbResults] = useState(null);
 
@@ -466,7 +468,7 @@ const Discover = () => {
   if (localStorage.getItem("cachedAiResults")) {
     if (!tmdbResults) {
       const cachedResults = JSON.parse(
-        localStorage.getItem("cachedAiResults") || [],
+        localStorage.getItem("cachedAiResults") || []
       );
       processedResults = getMediaDataFiltered(cachedResults);
     } else {
@@ -526,14 +528,14 @@ const Discover = () => {
               {getTextByLang(
                 lang,
                 "ابحث عن فيلمك المثالي",
-                "Find Your Perfect Watch",
+                "Find Your Perfect Watch"
               )}
             </h1>
             <p className="text-lg text-gray-500 dark:text-gray-400 mb-8 max-w-2xl">
               {getTextByLang(
                 lang,
                 "استخدم قوة الذكاء الاصطناعي لاكتشاف الأفلام والمسلسلات التي تناسب مزاجك. فقط صف ما تشعر به ودعنا نقوم بالباقي.",
-                "Use AI to discover movies and shows that match your mood. Just describe what you feel like and let us do the rest.",
+                "Use AI to discover movies and shows that match your mood. Just describe what you feel like and let us do the rest."
               )}
             </p>
           </motion.div>

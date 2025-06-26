@@ -25,7 +25,7 @@ html {
   --font-ar: "main-font", sans-serif;
 
   --animate-slide: slide 0.8s ease-in-out infinite;
-  --breakpoint-xs: 399px;
+  --breakpoint-xs: 380px;
 
   @keyframes slide {
     0% {
