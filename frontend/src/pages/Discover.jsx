@@ -16,6 +16,8 @@ import { getTextByLang } from "../utils";
 import useTheme from "../hooks/useTheme";
 import { useNavigate } from "react-router";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 function getMediaDataFiltered(mediaData) {
   const filteredData = mediaData
     ? [
@@ -272,7 +274,7 @@ const DiscoverModal = ({ handleClose, setTmdbResults }) => {
     }
     setErrInPrompt(null);
     const eventSource = new EventSource(
-      `http://localhost:3000/airecommend?prompt=${userPrompt}`,
+      `${API_BASE_URL}/airecommend?prompt=${userPrompt}`,
     );
     eventSource.onmessage = (e) => {
       const recieveData = JSON.parse(e.data);

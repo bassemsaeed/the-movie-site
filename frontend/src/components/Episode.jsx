@@ -5,6 +5,7 @@ import { Calendar, Clock, Star, User } from "lucide-react";
 import { getTextByLang } from "../utils";
 
 const BASE_IMAGE_URL = "https://image.tmdb.org/t/p/";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const getImageUrl = (path, size = "original", fallback = null) => {
   const placeholder =
@@ -55,7 +56,7 @@ const Episode = React.memo(
           setLoading(true);
           setError(null);
           const { data } = await axios.get(
-            `http://localhost:3000/episode/${seriesId}/${seasonNum}/${episodeNum}${lang === "ar" ? "?l=ar" : ""}`,
+            `${API_BASE_URL}/episode/${seriesId}/${seasonNum}/${episodeNum}${lang === "ar" ? "?l=ar" : ""}`,
             { signal: controller.signal },
           );
 

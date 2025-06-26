@@ -9,6 +9,7 @@ import { getTextByLang } from "../utils";
 
 const BASE_MEDIA_URL = "https://image.tmdb.org/t/p/w1280/";
 const BASE_LOGO_URL = "https://media.themoviedb.org/t/p/w500";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const Trending = () => {
   const { lang } = useTheme();
@@ -22,7 +23,7 @@ const Trending = () => {
   const [errorLoadingMedia, setErrorLoadingMedia] = useState(null);
   const [currentIndexMedia, setCurrentIndexMedia] = useState(null);
   const { data, error, loading } = useFetch(
-    `http://localhost:3000/trending?k=${category}`,
+    `${API_BASE_URL}/trending?k=${category}`,
     {
       lang,
       retryCount,
@@ -50,7 +51,7 @@ const Trending = () => {
     (async () => {
       try {
         const result = await axios.get(
-          `http://localhost:3000/${category === "movie" ? "movie" : "tv"}/${data?.results[currentTrendingIndex].id}/keywords`,
+          `${API_BASE_URL}/${category === "movie" ? "movie" : "tv"}/${data?.results[currentTrendingIndex].id}/keywords`,
         );
 
         if (category === "movie") setMediaKeywords(result.data.keywords);
@@ -105,7 +106,7 @@ const Trending = () => {
 
       try {
         const response = await fetch(
-          `http://localhost:3000/media/${category}/${data?.results[currentTrendingIndex]?.id}`,
+          `${API_BASE_URL}/media/${category}/${data?.results[currentTrendingIndex]?.id}`,
           {
             signal,
           },

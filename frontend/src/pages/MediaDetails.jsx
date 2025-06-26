@@ -25,6 +25,7 @@ import { ThemeHeader } from "../components/ThemeHeader";
 import ShareComponent from "../components/ShareComponent";
 
 const BASE_IMAGE_URL = "https://image.tmdb.org/t/p/";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const getImageUrl = (
   path,
@@ -792,14 +793,14 @@ const Movie = () => {
 
         const results = await Promise.allSettled([
           axios.get(
-            `http://localhost:3000/${mediaTypeEndpoint}/${details.id}?l=${lang}`,
+            `${API_BASE_URL}/${mediaTypeEndpoint}/${details.id}?l=${lang}`,
           ),
           axios.get(
-            `http://localhost:3000/recommended/${details.id}?k=${media_type}&l=${lang}`,
+            `${API_BASE_URL}/recommended/${details.id}?k=${media_type}&l=${lang}`,
           ),
           // NEW: Fetch credits data
           axios.get(
-            `http://localhost:3000/${media_type}/${details.id}/credits?l=${lang}`,
+            `${API_BASE_URL}/${media_type}/${details.id}/credits?l=${lang}`,
           ),
         ]);
 
@@ -845,7 +846,7 @@ const Movie = () => {
       if (lang === "ar") {
         params.append("l", "ar");
       }
-      const url = `http://localhost:3000/season/${mediaDetails.id}/${currentChosenSeason.season_number}?${params.toString()}`;
+      const url = `${API_BASE_URL}/season/${mediaDetails.id}/${currentChosenSeason.season_number}?${params.toString()}`;
 
       try {
         setLoadingCurrentSeasonIfo(true);

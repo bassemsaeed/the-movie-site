@@ -14,7 +14,9 @@ import useFetch from "../hooks/useFetch";
 import useTheme from "../hooks/useTheme";
 import { getTextByLang } from "../utils";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 const BASE_MEDIA_URL = "https://image.tmdb.org/t/p/w600_and_h900_bestv2/";
+
 const TopRated = React.memo(() => {
   const { lang } = useTheme();
   const [retryCount, setRetryCount] = useState(0);
@@ -26,7 +28,7 @@ const TopRated = React.memo(() => {
   const MAX_PAGE = 500;
   const MIN_PAGE = 1;
   const { data, error, loading } = useFetch(
-    `http://localhost:3000/top_rated?k=${chosenCategory}`,
+    `${API_BASE_URL}/top_rated?k=${chosenCategory}`,
     {
       lang,
       retryCount,
@@ -324,7 +326,7 @@ const MovieCard = ({
 
                     axios
                       .get(
-                        `http://localhost:3000/${category === "movie" ? "movie" : "tv"}/${id}/keywords`,
+                        `${API_BASE_URL}/${category === "movie" ? "movie" : "tv"}/${id}/keywords`,
                       )
                       .then((result) => {
                         if (category === "movie") {
@@ -397,7 +399,7 @@ const MovieCard = ({
 
                     axios
                       .get(
-                        `http://localhost:3000/${category === "movie" ? "movie" : "tv"}/${id}/keywords`,
+                        `${API_BASE_URL}/${category === "movie" ? "movie" : "tv"}/${id}/keywords`,
                       )
                       .then((result) => {
                         if (category === "movie") {

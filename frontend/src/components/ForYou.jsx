@@ -6,6 +6,8 @@ import useTheme from "../hooks/useTheme";
 import { useNavigate } from "react-router";
 import { getTextByLang } from "../utils";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 const shuffleArray = (array) => {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -280,7 +282,7 @@ export const ForYou = () => {
     setErrLoadingForYouData(null);
 
     const { with_genres, with_keywords } = getCommonPreferredGenres();
-    const baseUrl = "http://localhost:3000";
+    const baseUrl = API_BASE_URL;
     const moviesUrl = `/discover/movie?genres=${with_genres}&keywords=${with_keywords}&page=${currentPage}&l=${lang}`;
     const seriesUrl = `/discover/tv?genres=${with_genres}&keywords=${with_keywords}&page=${currentPage}&l=${lang}`;
 

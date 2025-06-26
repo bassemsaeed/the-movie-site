@@ -5,6 +5,8 @@ import useTheme from "../hooks/useTheme";
 import { Menu, MoonStar, Search, Sun, X } from "lucide-react";
 import { motion } from "framer-motion";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 function HomePage() {
   let navigate = useNavigate();
 
@@ -39,7 +41,7 @@ function HomePage() {
         setLoadingResultsError(null); // Reset error before new attempt
         try {
           const response = await fetch(
-            `http://localhost:3000/search?q=${searchQuery}&l=${lang}`,
+            `${API_BASE_URL}/search?q=${searchQuery}&l=${lang}`,
             { signal }, // Pass signal to fetch
           );
 
