@@ -172,7 +172,16 @@ const ShareComponent = ({ title, url, mediaType }) => {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`Share on ${link.name}`}
-            className={`flex items-center justify-center w-12 h-12 rounded-full text-white transition-transform duration-200 hover:scale-110 ${link.className}`}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "48px", // This is w-12
+              height: "48px", // This is h-12
+              borderRadius: "9999px", // This is rounded-full
+              backgroundColor: "black",
+              color: "white",
+            }}
           >
             {link.icon}
           </a>
