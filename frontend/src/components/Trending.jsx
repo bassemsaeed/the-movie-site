@@ -154,7 +154,7 @@ const Trending = () => {
       {
         <div
           className={
-            "w-full h-full overflow-hidden rounded-xl select-none " +
+            "w-full h-full rounded-xl select-none " +
             (lang === "ar"
               ? " mask-radial-from-100% mask-radial-at-top-left mask-radial-farthest-corner"
               : " mask-radial-from-100% mask-radial-at-bottom-right mask-radial-farthest-corner")

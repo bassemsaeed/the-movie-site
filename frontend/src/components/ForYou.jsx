@@ -424,7 +424,7 @@ export const ForYou = () => {
         ) : foryouData && foryouData.length > 0 ? (
           <div className="relative h-full">
             <div
-              className="flex gap-3 h-full overflow-x-auto overflow-y-hidden scrollbar-hide px-2 py-2 items-center"
+              className="flex gap-3 h-full max-h-fit overflow-x-auto overflow-y-hidden scrollbar-hide px-2 bg-gray-50 py-2 items-center"
               ref={mainContainerRef}
               style={{
                 scrollbarWidth: "none",

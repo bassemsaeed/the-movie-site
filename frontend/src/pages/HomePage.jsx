@@ -109,7 +109,7 @@ function HomePage() {
         initial={{ opacity: isFirstLoading.current ? 1 : 0 }} // Avoid initial animation flicker on first load if not desired
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
-        className="min-w-fit h-[60px] lg:gap-2 flex py-2 px-2 sm:px-5 md:px-6 lg:px-7 sticky top-0 z-40 justify-center items-center bg-white dark:bg-neutral-900 shadow-sm"
+        className="min-w-fit h-[60px] lg:gap-2 flex py-2 px-4 sm:px-5 md:px-6 lg:px-7 sticky top-0 z-40 justify-center items-center bg-white dark:bg-neutral-900 shadow-sm"
       >
         {/** MENU ICON FOR SMALLER SCREENS  */}
         <div className="flex w-fit h-full justify-center items-center ">
