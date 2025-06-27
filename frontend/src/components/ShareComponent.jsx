@@ -4,27 +4,25 @@ import { Send, Link, Copy, Check, X } from "lucide-react";
 import useTheme from "../hooks/useTheme";
 import { getTextByLang } from "../utils";
 
-const TwitterXIcon = ({ className, ...props }) => {
+const TwitterXIcon = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 24 24"
       fill="currentColor"
-      className={className}
-      {...props}
+      style={{ width: 28, height: 28 }}
     >
       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
     </svg>
   );
 };
 
-const WhatsAppIcon = ({ className, ...props }) => {
+const WhatsAppIcon = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 512 512" // The original viewBox is preserved.
-      className={className} // Allows passing Tailwind classes.
-      {...props} // Allows passing any other HTML attributes.
+      style={{ width: 28, height: 28 }}
     >
       {/* PATH 1: The main bubble shape. The hardcoded fill is now "currentColor". */}
       <path
@@ -70,20 +68,20 @@ const ShareComponent = ({ title, url, mediaType }) => {
     getTextByLang(
       lang,
       `شاهد ${mediaType === "tv" ? " مسلسل " : " فيلم "} ${title} ! `,
-      `Watch this ${mediaType === "tv" ? "series (" : "movie ("} ${title}) ! `,
-    ),
+      `Watch this ${mediaType === "tv" ? "series (" : "movie ("} ${title}) ! `
+    )
   );
 
   const shareLinks = [
     {
       name: "Twitter",
-      icon: <TwitterXIcon className={"w-7 h-7"} />,
+      icon: <TwitterXIcon />,
       url: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`,
       className: "bg-black hover:bg-gray-800",
     },
     {
       name: "WhatsApp",
-      icon: <WhatsAppIcon className={"w-7 h-7"} />,
+      icon: <WhatsAppIcon />,
       url: `https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`,
       className: "bg-green-500 hover:bg-green-600",
     },
@@ -161,7 +159,7 @@ const ShareComponent = ({ title, url, mediaType }) => {
         {getTextByLang(
           lang,
           `شارك ال${mediaType === "tv" ? "مسلسل" : "فيلم"} مع أصدقائك`,
-          `Share this ${mediaType === "tv" ? "series" : "movie"} with your friends!`,
+          `Share this ${mediaType === "tv" ? "series" : "movie"} with your friends!`
         )}
       </h3>
 
