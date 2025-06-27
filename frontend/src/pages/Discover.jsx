@@ -299,9 +299,11 @@ const DiscoverModal = ({ handleClose, setTmdbResults }) => {
         });
         setCurrentFeedbackFromAiEndpoint(null);
         eventSource.close();
+        
       }
-      if (recieveData.message) {
+      if (recieveData.message && recieveData.success !== false) {
         setCurrentFeedbackFromAiEndpoint(recieveData.message);
+        console.log(recieveData)
       }
       if (recieveData?.value && recieveData.end === true) {
         setTmdbResults(recieveData.value);
