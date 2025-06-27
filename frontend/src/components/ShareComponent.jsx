@@ -164,7 +164,7 @@ const ShareComponent = ({ title, url, mediaType }) => {
       </h3>
 
       {/* Social Media Icons */}
-      <div className="flex justify-center items-center gap-4">
+      <div className="flex justify-center items-center gap-4 min-h-[48px]">
         {shareLinks.map((link) => (
           <a
             key={link.name}
