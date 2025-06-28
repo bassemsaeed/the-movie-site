@@ -47,7 +47,7 @@ const TopRated = React.memo(() => {
   }, [data?.total_pages]);
 
   return (
-    <div className="overflow-auto relative font-ar rounded-2xl dark:text-white bg-gray-100  dark:bg-zinc-800 px-4  lg:h-full h-[calc(100vh-60px)] hidden-scrollbar">
+    <div className="overflow-auto relative font-ar rounded-2xl dark:text-white bg-gray-100  dark:bg-zinc-800 px-4  lg:h-full h-[calc(100vh-60px)] hidden-scrollbar mt-3">
       <div className="sticky top-0 bg-gray-100 dark:bg-zinc-800 w-full flex justify-between items-center  h-fit z-10 py-4  flex-wrap">
         <h1>{lang === "ar" ? "الأعلى تقييما" : "Top Rated"}</h1>
         <div className="flex items-center gap-3 w-fit px-3.5 py-2 dark:bg-zinc-800 bg-gray-300 rounded-lg transition-all duration-150">
