@@ -27,7 +27,7 @@ const Trending = () => {
     {
       lang,
       retryCount,
-    },
+    }
   );
 
   const MAX_ITEMS = data?.results.length || 0;
@@ -39,7 +39,7 @@ const Trending = () => {
 
   useEffect(() => {
     const liked = JSON.parse(localStorage.getItem("likedMedia") || "[]")?.find(
-      (item) => item.id === data?.results[currentTrendingIndex].id,
+      (item) => item.id === data?.results[currentTrendingIndex].id
     );
 
     setIsLiked(liked ? true : false);
@@ -51,7 +51,7 @@ const Trending = () => {
     (async () => {
       try {
         const result = await axios.get(
-          `${API_BASE_URL}${category === "movie" ? "movie" : "tv"}/${data?.results[currentTrendingIndex].id}/keywords`,
+          `${API_BASE_URL}${category === "movie" ? "movie" : "tv"}/${data?.results[currentTrendingIndex].id}/keywords`
         );
 
         if (category === "movie") setMediaKeywords(result.data.keywords);
@@ -109,7 +109,7 @@ const Trending = () => {
           `${API_BASE_URL}media/${category}/${data?.results[currentTrendingIndex]?.id}`,
           {
             signal,
-          },
+          }
         );
 
         if (!response.ok) {
@@ -146,11 +146,7 @@ const Trending = () => {
     );
   }
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="w-full h-full bg-gray-100 dark:bg-neutral-800 rounded-xl relative"
-    >
+    <motion.div className="w-full h-full bg-gray-100 dark:bg-neutral-800 rounded-xl relative">
       {
         <div
           className={
@@ -176,7 +172,7 @@ const Trending = () => {
               getTextByLang(
                 lang,
                 " mask-l-from-0 mask-t-from-70",
-                " mask-r-from-50 mask-t-from-105",
+                " mask-r-from-50 mask-t-from-105"
               )
             }
           ></div>
@@ -211,7 +207,7 @@ const Trending = () => {
                   className="flex justify-center items-center w-fit  h-fit"
                 >
                   {currentIndexMedia.logos.filter(
-                    (logo) => logo["iso_639_1"] === "en",
+                    (logo) => logo["iso_639_1"] === "en"
                   ).length === 0 ? (
                     <h2 className="text-white font-ar lg:text-2xl md:text-lg sm:text-sm text-[13px]">
                       {data?.results[currentTrendingIndex]?.title ||
@@ -222,15 +218,15 @@ const Trending = () => {
                       src={
                         BASE_LOGO_URL +
                         currentIndexMedia.logos.filter(
-                          (logo) => logo["iso_639_1"] === "en",
+                          (logo) => logo["iso_639_1"] === "en"
                         )[0]?.file_path
                       }
                       className={
                         "w-full select-none sm:h-[35px] md:h-[45px] lg:h-[45px] object-cover" +
                         (Number(
                           currentIndexMedia.logos.filter(
-                            (logo) => logo["iso_639_1"] === "en",
-                          )[0]?.height,
+                            (logo) => logo["iso_639_1"] === "en"
+                          )[0]?.height
                         ) > 300
                           ? " h-[35px]"
                           : " h-[15px]")
@@ -258,7 +254,7 @@ const Trending = () => {
                   className="lg:w-[130px] md:w-[130px] sm:w-[110px] w-[80px] h-10/12 rounded-lg cursor-pointer text-white font-ar border-[0.1px] border-white/10 text-sm bg-black/80"
                   onClick={() =>
                     navigate(
-                      `/${category === "movie" ? "movies" : "series"}/${idOfMovieOrSeries}${lang === "ar" ? "?l=ar" : ""}`,
+                      `/${category === "movie" ? "movies" : "series"}/${idOfMovieOrSeries}${lang === "ar" ? "?l=ar" : ""}`
                     )
                   }
                 >
@@ -268,7 +264,7 @@ const Trending = () => {
                   className="px-3 cursor-pointer rounded-lg bg-rose-600/45 max-w-fit hover:bg-rose-600/80 h-10/12 transition-all duration-150 text-white font-ar text-sm"
                   onClick={() => {
                     const storedLikedMedia = JSON.parse(
-                      localStorage.getItem("likedMedia") || "[]",
+                      localStorage.getItem("likedMedia") || "[]"
                     );
 
                     const currentMediaItem =
@@ -283,18 +279,18 @@ const Trending = () => {
                       storedLikedMedia.push(currentMediaItem);
                       localStorage.setItem(
                         "likedMedia",
-                        JSON.stringify(storedLikedMedia),
+                        JSON.stringify(storedLikedMedia)
                       );
 
                       setIsLiked(true);
                     } else {
                       const newFilteredMedia = storedLikedMedia.filter(
-                        (media) => media.id !== currentMediaItem.id,
+                        (media) => media.id !== currentMediaItem.id
                       );
 
                       localStorage.setItem(
                         "likedMedia",
-                        JSON.stringify(newFilteredMedia),
+                        JSON.stringify(newFilteredMedia)
                       );
 
                       setIsLiked(false);
@@ -342,53 +338,54 @@ const Trending = () => {
           {/** TOGGLE MEIDA CONTAINER */}
           <div
             className={
-              "absolute top-3 lg:w-[260px] md:w-[220px] w-[195px] h-[40px] px-2 py-1 rounded-lg flex justify-around items-center gap-2  bg-black/70 " +
+              "absolute top-3  w-[96%] h-[48px] px-2 py-1 rounded-lg flex justify-around items-center gap-2  " +
               getTextByLang(
                 lang,
                 "lg:left-5 md:left-5 sm:left-3 left-2",
-                "lg:right-5 md:right-5 sm:right-3 right-2",
+                "lg:right-5 md:right-5 sm:right-3 right-2"
               )
             }
           >
-            {" "}
-            <h2 className="font-ar text-sm text-white grow">
+            <h2 className="font-ar text-lg font-bold text-white grow mx-1.5">
               {getTextByLang(lang, "الرائج", "Trending")}
             </h2>
-            <button
-              className={
-                "grow font-ar lg:text-sm md:text-sm sm:text-[13px] text-[12px] p-1 rounded-lg cursor-pointer text-white bg-white/15 " +
-                (category === "movie" ? "bg-white/40" : "bg-white/15")
-              }
-              onClick={() => {
-                if (category === "movie") {
-                  setRetryCount((prev) => prev + 1);
-                } else {
-                  setCategory("movie");
-                  setCurrentIndexMedia(null);
-                  setErrorLoadingMedia(null);
+            <div className="flex items-center justify-between h-full gap-3 rounded-4xl bg-black/80 w-[180px]  ">
+              <button
+                className={
+                  "grow font-ar lg:text-sm md:text-sm sm:text-[13px] h-full rounded-4xl text-[12px] py-1.5 px-3  cursor-pointer text-white  " +
+                  (category === "movie" ? "bg-white/40" : "bg-none")
                 }
-              }}
-            >
-              {getTextByLang(lang, "أفلام", "Movies")}
-            </button>
-            <button
-              className={
-                "grow font-ar p-1 rounded-lg cursor-pointer lg:text-sm md:text-sm sm:text-[13px] text-[12px] text-white bg-white/15 " +
-                (category === "tv" ? "bg-white/40" : "bg-white/15")
-              }
-              onClick={() => {
-                if (category === "tv") {
-                  setRetryCount((prev) => prev + 1);
-                } else {
-                  setCategory("tv");
-                  setCurrentIndexMedia(null);
+                onClick={() => {
+                  if (category === "movie") {
+                    setRetryCount((prev) => prev + 1);
+                  } else {
+                    setCategory("movie");
+                    setCurrentIndexMedia(null);
+                    setErrorLoadingMedia(null);
+                  }
+                }}
+              >
+                {getTextByLang(lang, "أفلام", "Movies")}
+              </button>
+              <button
+                className={
+                  "grow font-ar p-1 rounded-4xl h-full cursor-pointer lg:text-sm md:text-sm sm:text-[13px] text-[12px] py-1.5 text-white bg-none " +
+                  (category === "tv" ? "bg-white/40" : "bg-none")
+                }
+                onClick={() => {
+                  if (category === "tv") {
+                    setRetryCount((prev) => prev + 1);
+                  } else {
+                    setCategory("tv");
+                    setCurrentIndexMedia(null);
 
-                  setErrorLoadingMedia(null);
-                }
-              }}
-            >
-              {getTextByLang(lang, "مسلسلات", "Series")}
-            </button>
+                    setErrorLoadingMedia(null);
+                  }
+                }}
+              >
+                {getTextByLang(lang, "مسلسلات", "Series")}
+              </button>
+            </div>
           </div>
         </div>
       }
