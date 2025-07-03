@@ -171,8 +171,8 @@ const Trending = () => {
               " absolute top-0 w-full h-full bg-black/90 " +
               getTextByLang(
                 lang,
-                " mask-l-from-0 mask-t-from-70",
-                " mask-r-from-50 mask-t-from-105"
+                " mask-l-from-4 mask-t-from-105",
+                " mask-r-from-4 mask-t-from-105"
               )
             }
           ></div>
