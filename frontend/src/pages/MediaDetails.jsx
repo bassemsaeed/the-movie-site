@@ -458,6 +458,7 @@ const ActionButtons = ({
             );
             setIsSavedInWatchLater(false);
           } else {
+            media.media_type = media_type;
             if (media_type === "movie") {
               media.mediaKeywords =
                 mediaKeywords?.keywords && mediaKeywords?.keywords.length > 6
