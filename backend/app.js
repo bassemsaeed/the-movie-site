@@ -23,6 +23,8 @@ import { limit } from "./middlewares/ratelimiterforai.middleware.js";
 
 const app = express();
 
+app.set("trust proxy", true);
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   limit: 800, // Limit each IP to 800 requests per `window` (here, per 15 minutes).
@@ -34,7 +36,7 @@ app.use(
   cors({
     origin: "http://localhost:5173", // 👈 Allow only your frontend (this is for local testing purposes, and i have to actually set it to the website link in production)
     methods: ["GET", "POST", "PUT", "DELETE"], // Allowed methods
-  }),
+  })
 );
 
 app.use(limiter);
