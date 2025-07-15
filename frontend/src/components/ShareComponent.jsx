@@ -44,7 +44,7 @@ const ShareComponent = ({ title, url, mediaType }) => {
   const shareLinks = [
     {
       name: "Twitter",
-      icon: <BsTwitterX className="w-7 h-7"/>,
+      icon: <BsTwitterX className="w-7 h-7" />,
       url: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`,
       className: "bg-black hover:bg-gray-800",
     },

@@ -59,8 +59,7 @@ I really need to laugh tonight.
 
 **Your Output 1:**
 
-"{
-  "weighted_keywords": [
+[
     { "keyword": "comedy", "weight": 10.0 },
     { "keyword": "humor", "weight": 9.5 },
     { "keyword": "funny", "weight": 9.0 },
@@ -69,8 +68,8 @@ I really need to laugh tonight.
     { "keyword": "lighthearted", "weight": 5.5 },
     { "keyword": "feel-good", "weight": 4.5 },
     { "keyword": "parody", "weight": 3.0 }
-  ]
-}" 
+]
+ 
 
 
 and THIS IS VERY IMPORTANT RULE IF YOU GOT ANY PROMPTS THAT QUESTION YOU THE AI ALSO TRY TO EXTRACT KEYWORDS YOU SHALL ALWAYS TRY TO EXTRACT KEYWORDS FROM THE PROMPT GIVEN, NO. MATTER. WHAT. THE. PROMPT. IS.
@@ -105,8 +104,9 @@ You are a highly specialized MovieDB (TMDB) API Assistant. Your function is to t
 
 Analyze the user's input and generate a single parent JSON object with search_title, movie_query, and tv_query keys.
 
-**Your entire response MUST be in this exact format:**
-json
+**Your entire response MUST be in this exact format WITHOUT ANY MARKDOWN:**
+
+
 {
   "search_title": "<A short, descriptive title for the search>",
   "movie_query": {
@@ -184,7 +184,8 @@ I'd love a smart, witty mystery. Or, if not that, a good old-fashioned heist mov
 
 **Your Output 1:**
 *(Logic: The core is "witty mystery" (Comedy AND Mystery). The alternative is "heist movie" (Crime). The title should reflect both options. This requires a compound A,B|C structure for genres. Keywords for all concepts are ORed together for a wider net.)*
-json
+
+
 {
   "search_title": "Clever Mysteries & Heists",
   "movie_query": {
@@ -203,7 +204,8 @@ I want something epic. Like a historical war film or a big space opera.
 
 **Your Output 2:**
 *(Logic: "Historical war film" is a tight concept (History AND War). "Space opera" is another concept (Sci-Fi, likely with keywords). The user wants either of these two distinct ideas. The title should be grand.)*
-json
+
+
 {
   "search_title": "Epic Wars & Space Operas",
   "movie_query": {
@@ -222,7 +224,8 @@ I feel nostalgic and want something cozy, maybe with a hint of melancholy.
 
 **Your Output 3:**
 *(Logic: Here, all concepts ("nostalgic," "cozy," "melancholy") are layered on top of each other. The title should evoke this combined feeling.)*
-json
+
+
 {
   "search_title": "Cozy & Melancholic Throwbacks",
   "movie_query": {
@@ -270,6 +273,7 @@ async function getKeywordsFromPrompt(userPrompt) {
   });
 
   // GET TOP 4 KEYWORDS
+
   const keywordsArr = JSON.parse(result.text);
   if (keywordsArr.length > 4)
     return keywordsArr.slice(0, 4).map((kw) => kw.keyword);
@@ -288,7 +292,6 @@ async function getFinalGeneratedKwordsAndGneres(userPrompt, keywords) {
     contents: finalPrompt,
     config: {
       responseMimeType: "application/json",
-
       responseSchema: {
         type: Type.OBJECT,
         properties: {

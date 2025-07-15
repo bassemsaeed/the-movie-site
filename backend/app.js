@@ -36,7 +36,7 @@ app.use(
   cors({
     origin: "http://localhost:5173", // 👈 Allow only your frontend (this is for local testing purposes, and i have to actually set it to the website link in production)
     methods: ["GET", "POST", "PUT", "DELETE"], // Allowed methods
-  })
+  }),
 );
 
 app.use(limiter);
