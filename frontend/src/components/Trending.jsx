@@ -22,6 +22,8 @@ const Trending = () => {
     useState(false);
   const [errorLoadingMedia, setErrorLoadingMedia] = useState(null);
   const [currentIndexMedia, setCurrentIndexMedia] = useState(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  
   const { data, error, loading } = useFetch(
     `${API_BASE_URL}trending?k=${category}`,
     {
@@ -36,6 +38,13 @@ const Trending = () => {
   const [mediaKeywords, setMediaKeywords] = useState(null);
 
   const idOfMovieOrSeries = data?.results[currentTrendingIndex]?.id;
+
+  // Mark initial load as complete when we first get data
+  useEffect(() => {
+    if (data && isInitialLoad) {
+      setIsInitialLoad(false);
+    }
+  }, [data, isInitialLoad]);
 
   useEffect(() => {
     const liked = JSON.parse(localStorage.getItem("likedMedia") || "[]")?.find(
@@ -132,7 +141,8 @@ const Trending = () => {
     };
   }, [category, data, loading, error, currentTrendingIndex]);
 
-  if (loading) {
+  // Only show full loading skeleton on initial load
+  if (loading && isInitialLoad) {
     return (
       <div className="w-full h-full bg-gray-100 dark:bg-neutral-800 animate-pulse rounded-xl"></div>
     );
@@ -145,8 +155,21 @@ const Trending = () => {
       </div>
     );
   }
+  
+  // Don't render the main content if we don't have data yet
+  if (!data) {
+    return (
+      <div className="w-full h-full bg-gray-100 dark:bg-neutral-800 animate-pulse rounded-xl"></div>
+    );
+  }
+
   return (
     <motion.div className="w-full h-full bg-gray-100 dark:bg-neutral-800 rounded-xl relative">
+      {loading && !isInitialLoad && (
+        <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-xl z-50 flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
       {
         <div
           className={
@@ -178,7 +201,109 @@ const Trending = () => {
           ></div>
 
           {/** MEDIA INFO CONTAINER */}
-          <div className="w-full h-full absolute top-0 before:content-[''] before:absolute before:h-60 before:bottom-0  before:bg-linear-to-t before:from-black before:to-black/0 before:w-full">
+         <CurrentChosenItem 
+           lang={lang}
+           data={data}
+           currentTrendingIndex={currentTrendingIndex}
+           loadingCurrentIndexMedia={loadingCurrentIndexMedia}
+           errorLoadingMedia={errorLoadingMedia}
+           currentIndexMedia={currentIndexMedia}
+           category={category}
+           isLiked={isLiked}
+           setIsLiked={setIsLiked}
+           mediaKeywords={mediaKeywords}
+           handleNext={handleNext}
+           handlePrev={handlePrev}
+           setRetryCount={setRetryCount}
+           navigate={navigate}
+           MAX_ITEMS={MAX_ITEMS}
+           setCurrentTrendingIndex={setCurrentTrendingIndex}
+           idOfMovieOrSeries={idOfMovieOrSeries}
+         />
+
+          {/** TOGGLE MEIDA CONTAINER */}
+          <div
+            className={
+              "absolute top-3  w-[96%] h-[48px] px-2 py-1 rounded-lg flex justify-around items-center gap-2  " +
+              getTextByLang(
+                lang,
+                "lg:left-5 md:left-5 sm:left-3 left-2",
+                "lg:right-5 md:right-5 sm:right-3 right-2",
+              )
+            }
+          >
+            <h2 className="font-ar text-lg font-bold text-white grow mx-1.5">
+              {getTextByLang(lang, "الرائج", "Trending")}
+            </h2>
+            <div className="flex items-center justify-center h-full px-1.5 py-1 rounded-4xl bg-black/80 w-[180px]  ">
+              <button
+                className={
+                  "grow font-ar lg:text-sm md:text-sm sm:text-[13px] h-full rounded-4xl text-[12px]  cursor-pointer text-white  " +
+                  (category === "movie" ? "bg-white/20" : "bg-none")
+                }
+                onClick={() => {
+                  if (category === "movie") {
+                    setRetryCount((prev) => prev + 1);
+                  } else {
+                    setCategory("movie");
+                    setCurrentTrendingIndex(0);
+                    setCurrentIndexMedia(null);
+                    setErrorLoadingMedia(null);
+                  }
+                }}
+              >
+                {getTextByLang(lang, "أفلام", "Movies")}
+              </button>
+              <button
+                className={
+                  "grow font-ar rounded-4xl h-full cursor-pointer lg:text-sm md:text-sm sm:text-[13px] text-[12px]  text-white bg-none " +
+                  (category === "tv" ? "bg-white/20" : "bg-none")
+                }
+                onClick={() => {
+                  if (category === "tv") {
+                    setRetryCount((prev) => prev + 1);
+                  } else {
+                    setCategory("tv");
+                    setCurrentTrendingIndex(0);
+                    setCurrentIndexMedia(null);
+                    setErrorLoadingMedia(null);
+                  }
+                }}
+              >
+                {getTextByLang(lang, "مسلسلات", "Series")}
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    </motion.div>
+  );
+};
+
+
+
+
+const CurrentChosenItem = ({
+  lang,
+  data,
+  currentTrendingIndex,
+  loadingCurrentIndexMedia,
+  errorLoadingMedia,
+  currentIndexMedia,
+  category,
+  isLiked,
+  setIsLiked,
+  mediaKeywords,
+  handleNext,
+  handlePrev,
+  setRetryCount,
+  navigate,
+  MAX_ITEMS,
+  setCurrentTrendingIndex,
+  idOfMovieOrSeries
+}) => {
+  return (
+ <div className="w-full h-full absolute top-0 before:content-[''] before:absolute before:h-60 before:bottom-0  before:bg-linear-to-t before:from-black before:to-black/0 before:w-full">
             <ArrowRight
               color="white"
               className="absolute top-10/12 right-6 cursor-pointer z-50"
@@ -334,63 +459,6 @@ const Trending = () => {
               ))}
             </div>
           </div>
-
-          {/** TOGGLE MEIDA CONTAINER */}
-          <div
-            className={
-              "absolute top-3  w-[96%] h-[48px] px-2 py-1 rounded-lg flex justify-around items-center gap-2  " +
-              getTextByLang(
-                lang,
-                "lg:left-5 md:left-5 sm:left-3 left-2",
-                "lg:right-5 md:right-5 sm:right-3 right-2",
-              )
-            }
-          >
-            <h2 className="font-ar text-lg font-bold text-white grow mx-1.5">
-              {getTextByLang(lang, "الرائج", "Trending")}
-            </h2>
-            <div className="flex items-center justify-between h-full gap-3 rounded-4xl bg-black/80 w-[180px]  ">
-              <button
-                className={
-                  "grow font-ar lg:text-sm md:text-sm sm:text-[13px] h-full rounded-4xl text-[12px] py-1.5 px-3  cursor-pointer text-white  " +
-                  (category === "movie" ? "bg-white/40" : "bg-none")
-                }
-                onClick={() => {
-                  if (category === "movie") {
-                    setRetryCount((prev) => prev + 1);
-                  } else {
-                    setCategory("movie");
-                    setCurrentIndexMedia(null);
-                    setErrorLoadingMedia(null);
-                  }
-                }}
-              >
-                {getTextByLang(lang, "أفلام", "Movies")}
-              </button>
-              <button
-                className={
-                  "grow font-ar p-1 rounded-4xl h-full cursor-pointer lg:text-sm md:text-sm sm:text-[13px] text-[12px] py-1.5 text-white bg-none " +
-                  (category === "tv" ? "bg-white/40" : "bg-none")
-                }
-                onClick={() => {
-                  if (category === "tv") {
-                    setRetryCount((prev) => prev + 1);
-                  } else {
-                    setCategory("tv");
-                    setCurrentIndexMedia(null);
-
-                    setErrorLoadingMedia(null);
-                  }
-                }}
-              >
-                {getTextByLang(lang, "مسلسلات", "Series")}
-              </button>
-            </div>
-          </div>
-        </div>
-      }
-    </motion.div>
   );
-};
-
+}
 export default Trending;
