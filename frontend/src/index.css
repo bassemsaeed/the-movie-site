@@ -31,6 +31,7 @@ html {
     0% {
       transform: translateX(0);
     }
+
     100% {
       transform: translateX(100vw);
     }
@@ -58,4 +59,6 @@ html {
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-500 dark:bg-zinc-400;
   }
+
+
 }

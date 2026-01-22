@@ -23,7 +23,7 @@ const Trending = () => {
   const [errorLoadingMedia, setErrorLoadingMedia] = useState(null);
   const [currentIndexMedia, setCurrentIndexMedia] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  
+
   const { data, error, loading } = useFetch(
     `${API_BASE_URL}trending?k=${category}`,
     {
@@ -155,7 +155,7 @@ const Trending = () => {
       </div>
     );
   }
-  
+
   // Don't render the main content if we don't have data yet
   if (!data) {
     return (
@@ -201,25 +201,25 @@ const Trending = () => {
           ></div>
 
           {/** MEDIA INFO CONTAINER */}
-         <CurrentChosenItem 
-           lang={lang}
-           data={data}
-           currentTrendingIndex={currentTrendingIndex}
-           loadingCurrentIndexMedia={loadingCurrentIndexMedia}
-           errorLoadingMedia={errorLoadingMedia}
-           currentIndexMedia={currentIndexMedia}
-           category={category}
-           isLiked={isLiked}
-           setIsLiked={setIsLiked}
-           mediaKeywords={mediaKeywords}
-           handleNext={handleNext}
-           handlePrev={handlePrev}
-           setRetryCount={setRetryCount}
-           navigate={navigate}
-           MAX_ITEMS={MAX_ITEMS}
-           setCurrentTrendingIndex={setCurrentTrendingIndex}
-           idOfMovieOrSeries={idOfMovieOrSeries}
-         />
+          <CurrentChosenItem
+            lang={lang}
+            data={data}
+            currentTrendingIndex={currentTrendingIndex}
+            loadingCurrentIndexMedia={loadingCurrentIndexMedia}
+            errorLoadingMedia={errorLoadingMedia}
+            currentIndexMedia={currentIndexMedia}
+            category={category}
+            isLiked={isLiked}
+            setIsLiked={setIsLiked}
+            mediaKeywords={mediaKeywords}
+            handleNext={handleNext}
+            handlePrev={handlePrev}
+            setRetryCount={setRetryCount}
+            navigate={navigate}
+            MAX_ITEMS={MAX_ITEMS}
+            setCurrentTrendingIndex={setCurrentTrendingIndex}
+            idOfMovieOrSeries={idOfMovieOrSeries}
+          />
 
           {/** TOGGLE MEIDA CONTAINER */}
           <div
@@ -303,162 +303,162 @@ const CurrentChosenItem = ({
   idOfMovieOrSeries
 }) => {
   return (
- <div className="w-full h-full absolute top-0 before:content-[''] before:absolute before:h-60 before:bottom-0  before:bg-linear-to-t before:from-black before:to-black/0 before:w-full">
-            <ArrowRight
-              color="white"
-              className="absolute top-10/12 right-6 cursor-pointer z-50"
-              onClick={lang === "ar" ? handlePrev : handleNext}
-            />
-            <ArrowLeft
-              color="white"
-              className="absolute left-10 top-10/12 cursor-pointer z-50"
-              onClick={lang === "ar" ? handleNext : handlePrev}
-            />
+    <div className="w-full h-full absolute top-0 before:content-[''] before:absolute before:h-60 before:bottom-0  before:bg-linear-to-t before:from-black before:to-black/0 before:w-full">
+      <ArrowRight
+        color="white"
+        className="absolute top-10/12 right-6 cursor-pointer z-50"
+        onClick={lang === "ar" ? handlePrev : handleNext}
+      />
+      <ArrowLeft
+        color="white"
+        className="absolute left-10 top-10/12 cursor-pointer z-50"
+        onClick={lang === "ar" ? handleNext : handlePrev}
+      />
 
-            {/** MEDIA INFO */}
-            <div className="w-[600px] h-[70%] bg-transparent flex px-5  flex-col items-start  justify-end gap-2 lg:mt-1 md:mt-1 mt-6">
-              {loadingCurrentIndexMedia ? (
-                <div className="w-6 h-6 rounded-full animate-spin border-t-2 border-t-red-500 " />
-              ) : errorLoadingMedia ? (
-                <div className="text-white">
-                  {data?.results[currentTrendingIndex]?.title ||
-                    data?.results[currentTrendingIndex]?.name ||
-                    getTextByLang(lang, "لا يوجد عنوان", "No Title")}
-                </div>
-              ) : currentIndexMedia?.logos?.length > 0 ? (
-                <motion.div
-                  initial={{ y: -20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  className="flex justify-center items-center w-fit  h-fit"
-                >
-                  {currentIndexMedia.logos.filter(
-                    (logo) => logo["iso_639_1"] === "en",
-                  ).length === 0 ? (
-                    <h2 className="text-white font-ar lg:text-2xl md:text-lg sm:text-sm text-[13px]">
-                      {data?.results[currentTrendingIndex]?.title ||
-                        data?.results[currentTrendingIndex]?.name}
-                    </h2>
-                  ) : (
-                    <img
-                      src={
-                        BASE_LOGO_URL +
-                        currentIndexMedia.logos.filter(
-                          (logo) => logo["iso_639_1"] === "en",
-                        )[0]?.file_path
-                      }
-                      className={
-                        "w-full select-none sm:h-[35px] md:h-[45px] lg:h-[45px] object-cover" +
-                        (Number(
-                          currentIndexMedia.logos.filter(
-                            (logo) => logo["iso_639_1"] === "en",
-                          )[0]?.height,
-                        ) > 300
-                          ? " h-[35px]"
-                          : " h-[15px]")
-                      }
-                      alt="logo"
-                    />
-                  )}
-                </motion.div>
-              ) : data?.results.length > 0 ? (
-                <div className="text-white">
-                  {data.results[currentTrendingIndex].title}
-                </div>
-              ) : (
-                <div>NO TITLE</div>
-              )}
-
-              <div className="h-fit z-40 ">
-                <p className="font-ar lg:text-sm md:text-sm sm:text-[13px] text-[12px] w-[300px] line-clamp-2 text-white">
-                  {data.results[currentTrendingIndex].overview}
-                </p>
-              </div>
-
-              <div className="w-fit h-10  z-40  flex items-center justify-around gap-3">
-                <button
-                  className="lg:w-[130px] md:w-[130px] sm:w-[110px] w-[80px] h-10/12 rounded-lg cursor-pointer text-white font-ar border-[0.1px] border-white/10 text-sm bg-black/80"
-                  onClick={() =>
-                    navigate(
-                      `/${category === "movie" ? "movies" : "series"}/${idOfMovieOrSeries}${lang === "ar" ? "?l=ar" : ""}`,
-                    )
-                  }
-                >
-                  {getTextByLang(lang, "فتح", "Open")}
-                </button>
-                <button
-                  className="px-3 cursor-pointer rounded-lg bg-rose-600/45 max-w-fit hover:bg-rose-600/80 h-10/12 transition-all duration-150 text-white font-ar text-sm"
-                  onClick={() => {
-                    const storedLikedMedia = JSON.parse(
-                      localStorage.getItem("likedMedia") || "[]",
-                    );
-
-                    const currentMediaItem =
-                      data?.results[currentTrendingIndex];
-
-                    if (!isLiked) {
-                      currentMediaItem.mediaKeywords =
-                        mediaKeywords && mediaKeywords.length > 6
-                          ? mediaKeywords?.slice(0, 11)
-                          : mediaKeywords;
-
-                      storedLikedMedia.push(currentMediaItem);
-                      localStorage.setItem(
-                        "likedMedia",
-                        JSON.stringify(storedLikedMedia),
-                      );
-
-                      setIsLiked(true);
-                    } else {
-                      const newFilteredMedia = storedLikedMedia.filter(
-                        (media) => media.id !== currentMediaItem.id,
-                      );
-
-                      localStorage.setItem(
-                        "likedMedia",
-                        JSON.stringify(newFilteredMedia),
-                      );
-
-                      setIsLiked(false);
-                    }
-                  }}
-                >
-                  {isLiked ? (
-                    <div className="flex max-w-fit flex-row items-center justify-center gap-2">
-                      <HeartOff size={18} />{" "}
-                      {getTextByLang(lang, "لم يعجبني", "Un Like")}
-                    </div>
-                  ) : (
-                    <div className="flex flex-row items-center justify-center gap-2">
-                      <Heart size={18} />{" "}
-                      {getTextByLang(lang, "أعجبني", "Like")}
-                    </div>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/** CAROUSEL INDICATOR */}
-            <div className="absolute top-[90%] right-[0.75%] w-[98%] h-7 flex items-center justify-center gap-2 px-2">
-              {Array.from({ length: MAX_ITEMS }).map((_, index) => (
-                <div
-                  key={index}
-                  className={
-                    "grow h-[3px]  rounded-2xl cursor-pointer " +
-                    (currentTrendingIndex === index
-                      ? "bg-rose-600"
-                      : "bg-white")
-                  }
-                  onClick={() => {
-                    if (currentTrendingIndex === index) {
-                      setRetryCount((prev) => prev + 1);
-                      return;
-                    }
-                    setCurrentTrendingIndex(index);
-                  }}
-                ></div>
-              ))}
-            </div>
+      {/** MEDIA INFO */}
+      <div className="w-[600px] h-[70%] bg-transparent flex px-5  flex-col items-start  justify-end gap-2 lg:mt-1 md:mt-1 mt-6">
+        {loadingCurrentIndexMedia ? (
+          <div className="w-6 h-6 rounded-full animate-spin border-t-2 border-t-red-500 " />
+        ) : errorLoadingMedia ? (
+          <div className="text-white">
+            {data?.results[currentTrendingIndex]?.title ||
+              data?.results[currentTrendingIndex]?.name ||
+              getTextByLang(lang, "لا يوجد عنوان", "No Title")}
           </div>
+        ) : currentIndexMedia?.logos?.length > 0 ? (
+          <motion.div
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="flex justify-center items-center w-fit  h-fit"
+          >
+            {currentIndexMedia.logos.filter(
+              (logo) => logo["iso_639_1"] === "en",
+            ).length === 0 ? (
+              <h2 className="text-white font-ar lg:text-2xl md:text-lg sm:text-sm text-[13px]">
+                {data?.results[currentTrendingIndex]?.title ||
+                  data?.results[currentTrendingIndex]?.name}
+              </h2>
+            ) : (
+              <img
+                src={
+                  BASE_LOGO_URL +
+                  currentIndexMedia.logos.filter(
+                    (logo) => logo["iso_639_1"] === "en",
+                  )[0]?.file_path
+                }
+                className={
+                  "w-full select-none sm:h-[35px] md:h-[45px] lg:h-[45px] object-cover" +
+                  (Number(
+                    currentIndexMedia.logos.filter(
+                      (logo) => logo["iso_639_1"] === "en",
+                    )[0]?.height,
+                  ) > 300
+                    ? " h-[35px]"
+                    : " h-[15px]")
+                }
+                alt="logo"
+              />
+            )}
+          </motion.div>
+        ) : data?.results.length > 0 ? (
+          <div className="text-white">
+            {data.results[currentTrendingIndex].title}
+          </div>
+        ) : (
+          <div>NO TITLE</div>
+        )}
+
+        <div className="h-fit z-40 ">
+          <p className="font-ar lg:text-sm md:text-sm sm:text-[13px] text-[12px] w-[300px] line-clamp-2 text-white">
+            {data.results[currentTrendingIndex].overview}
+          </p>
+        </div>
+
+        <div className="w-fit h-10  z-40  flex items-center justify-around gap-3">
+          <button
+            className="lg:w-[130px] md:w-[130px] sm:w-[110px] w-[80px] h-9 rounded-lg cursor-pointer text-white font-ar font-medium text-sm bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all duration-300 shadow-lg"
+            onClick={() =>
+              navigate(
+                `/${category === "movie" ? "movies" : "series"}/${idOfMovieOrSeries}${lang === "ar" ? "?l=ar" : ""}`,
+              )
+            }
+          >
+            {getTextByLang(lang, "فتح", "Open")}
+          </button>
+          <button
+            className="px-3 cursor-pointer rounded-lg bg-rose-600/45 max-w-fit hover:bg-rose-600/80 h-10/12 transition-all duration-150 text-white font-ar text-sm"
+            onClick={() => {
+              const storedLikedMedia = JSON.parse(
+                localStorage.getItem("likedMedia") || "[]",
+              );
+
+              const currentMediaItem =
+                data?.results[currentTrendingIndex];
+
+              if (!isLiked) {
+                currentMediaItem.mediaKeywords =
+                  mediaKeywords && mediaKeywords.length > 6
+                    ? mediaKeywords?.slice(0, 11)
+                    : mediaKeywords;
+
+                storedLikedMedia.push(currentMediaItem);
+                localStorage.setItem(
+                  "likedMedia",
+                  JSON.stringify(storedLikedMedia),
+                );
+
+                setIsLiked(true);
+              } else {
+                const newFilteredMedia = storedLikedMedia.filter(
+                  (media) => media.id !== currentMediaItem.id,
+                );
+
+                localStorage.setItem(
+                  "likedMedia",
+                  JSON.stringify(newFilteredMedia),
+                );
+
+                setIsLiked(false);
+              }
+            }}
+          >
+            {isLiked ? (
+              <div className="flex max-w-fit flex-row items-center justify-center gap-2">
+                <HeartOff size={18} />{" "}
+                {getTextByLang(lang, "لم يعجبني", "Un Like")}
+              </div>
+            ) : (
+              <div className="flex flex-row items-center justify-center gap-2">
+                <Heart size={18} />{" "}
+                {getTextByLang(lang, "أعجبني", "Like")}
+              </div>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/** CAROUSEL INDICATOR */}
+      <div className="absolute top-[90%] right-[0.75%] w-[98%] h-7 flex items-center justify-center gap-2 px-2">
+        {Array.from({ length: MAX_ITEMS }).map((_, index) => (
+          <div
+            key={index}
+            className={
+              "grow h-[3px]  rounded-2xl cursor-pointer " +
+              (currentTrendingIndex === index
+                ? "bg-rose-600"
+                : "bg-white")
+            }
+            onClick={() => {
+              if (currentTrendingIndex === index) {
+                setRetryCount((prev) => prev + 1);
+                return;
+              }
+              setCurrentTrendingIndex(index);
+            }}
+          ></div>
+        ))}
+      </div>
+    </div>
   );
 }
 export default Trending;

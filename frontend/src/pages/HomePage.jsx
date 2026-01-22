@@ -178,11 +178,10 @@ function HomePage() {
           )}
           <div className="flex items-center gap-2 mt-1.5">
             <button
-              className={`select-none ${
-                lang === "en"
-                  ? "cursor-pointer text-black dark:text-white font-semibold"
-                  : "cursor-pointer text-neutral-400 dark:text-neutral-500"
-              }`}
+              className={`select-none ${lang === "en"
+                ? "cursor-pointer text-black dark:text-white font-semibold"
+                : "cursor-pointer text-neutral-400 dark:text-neutral-500"
+                }`}
               onClick={() => {
                 isFirstLoading.current = false;
                 setLanguage("en");
@@ -192,11 +191,10 @@ function HomePage() {
             </button>
             <div className="w-[2px] h-5 bg-black dark:bg-white"></div>
             <button
-              className={`select-none ${
-                lang === "ar"
-                  ? "cursor-pointer text-black dark:text-white font-semibold"
-                  : "cursor-pointer text-neutral-400 dark:text-neutral-500"
-              }`}
+              className={`select-none ${lang === "ar"
+                ? "cursor-pointer text-black dark:text-white font-semibold"
+                : "cursor-pointer text-neutral-400 dark:text-neutral-500"
+                }`}
               onClick={() => {
                 isFirstLoading.current = false;
                 setLanguage("ar");
