@@ -162,18 +162,18 @@ function getCommonPreferredGenres() {
   const with_genres_filter =
     sortedGenresIdsInfoArr.length > 3
       ? TOP_THREE_GENRES[0] +
-        "," +
-        sortedGenresIdsInfoArr
-          .slice(2)
-          .map((g) => g[0])
-          .join("|") +
-        "|" +
-        TOP_THREE_GENRES[1] +
-        "," +
-        sortedGenresIdsInfoArr
-          .slice(2)
-          .map((g) => g[0])
-          .join("|")
+      "," +
+      sortedGenresIdsInfoArr
+        .slice(2)
+        .map((g) => g[0])
+        .join("|") +
+      "|" +
+      TOP_THREE_GENRES[1] +
+      "," +
+      sortedGenresIdsInfoArr
+        .slice(2)
+        .map((g) => g[0])
+        .join("|")
       : sortedGenresIdsInfoArr.map((g) => g[0]).join(",");
 
   // A MAP FOR EACH KEYWORD ID, STORES HOW MANY TIMES AN KEYWORD ID WAS PRESENT IN THE KEYWORD IDS LIST; BIGGER NUMBER MEANS GENERAL INTEREST IN A SPECIFIC KEYWORD AND THATS WHAT WOULD DETERMINE WHAT IS GOING TO BE RECOMMENDED AND HOW MUCH IS IT RECOMMENDED
@@ -199,9 +199,9 @@ function getCommonPreferredGenres() {
   const with_keywords_filter =
     sortedKwordsIdsArr.length > 10
       ? sortedKwordsIdsArr
-          .slice(0, 10)
-          .map((kword) => kword[0])
-          .join("|")
+        .slice(0, 10)
+        .map((kword) => kword[0])
+        .join("|")
       : sortedKwordsIdsArr.map((kword) => kword[0]).join("|");
 
   return {
@@ -227,7 +227,7 @@ const ForYouCard = ({ item }) => {
   const navigate = useNavigate();
   return (
     <div
-      className="select-none group flex-shrink-0 relative rounded-xl overflow-hidden shadow-lg transform w-[200px] h-full  grow hover:z-10 transition-all duration-300 ease-in-out cursor-pointer"
+      className="select-none group flex-shrink-0 relative rounded-xl overflow-hidden shadow-lg w-[200px] h-full grow hover:z-10 hover:scale-[1.02] transition-all duration-300 ease-in-out cursor-pointer"
       onClick={() => navigate(`/${item.mediaType}/${item.id}`)}
     >
       <img
@@ -395,7 +395,7 @@ export const ForYou = () => {
     }
   }, [foryouData, isLoadingMore, currentPage, totalPages]);
   return (
-    <div className="bg-gray-100 dark:bg-zinc-800 rounded-2xl px-4 py-3 w-full h-full overflow-hidden">
+    <div className="bg-gray-100 dark:bg-neutral-800 rounded-2xl px-4 py-3 w-full h-full overflow-hidden">
       <h2 className="font-ar dark:text-white mb-2 mt-2">
         {getTextByLang(lang, "مخصصة لك", "For You")}
       </h2>
@@ -448,7 +448,7 @@ export const ForYou = () => {
 
             {/* Right Arrow Button */}
             <div
-              className="absolute top-0 -right-5 z-20 h-full w-12 bg-gradient-to-l from-gray-100/60 dark:from-zinc-800 via-gray-100/80 dark:via-zinc-800/80 to-transparent flex justify-center items-center cursor-pointer"
+              className="absolute top-0 -right-5 z-20 h-full w-12 bg-gradient-to-l from-gray-100/60 dark:from-neutral-800 via-gray-100/80 dark:via-neutral-800/80 to-transparent flex justify-center items-center cursor-pointer"
               onClick={() => {
                 if (mainContainerRef.current) {
                   mainContainerRef.current.scrollBy({
@@ -467,7 +467,7 @@ export const ForYou = () => {
 
             {/* Left Arrow Button */}
             <div
-              className="absolute top-0 -left-5 z-20 h-full w-12 bg-gradient-to-r from-gray-100 dark:from-zinc-800 via-gray-100/80 dark:via-zinc-800/80 to-transparent flex justify-center items-center cursor-pointer"
+              className="absolute top-0 -left-5 z-20 h-full w-12 bg-gradient-to-r from-gray-100 dark:from-neutral-800 via-gray-100/80 dark:via-neutral-800/80 to-transparent flex justify-center items-center cursor-pointer"
               onClick={() => {
                 if (mainContainerRef.current) {
                   mainContainerRef.current.scrollBy({

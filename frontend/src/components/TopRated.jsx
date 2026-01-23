@@ -47,15 +47,15 @@ const TopRated = React.memo(() => {
   }, [data?.total_pages]);
 
   return (
-    <div className="overflow-auto relative font-ar rounded-2xl dark:text-white bg-gray-100  dark:bg-zinc-800 px-4  h-[calc(100vh-76px)] hidden-scrollbar mt-3">
-      <div className="sticky top-0 bg-gray-100 dark:bg-zinc-800 w-full flex justify-between items-center  h-fit z-10 py-4  flex-wrap">
+    <div className="overflow-auto relative font-ar rounded-2xl dark:text-white bg-gray-100 dark:bg-neutral-800 px-4 h-[calc(100vh-76px)] hidden-scrollbar mt-3">
+      <div className="sticky top-0 bg-gray-100 dark:bg-neutral-800 w-full flex justify-between items-center h-fit z-10 py-4 flex-wrap">
         <h1>{lang === "ar" ? "الأعلى تقييما" : "Top Rated"}</h1>
-        <div className="flex items-center gap-3 w-fit px-3.5 py-2 dark:bg-zinc-800 bg-gray-300 rounded-lg transition-all duration-150">
+        <div className="flex items-center gap-2 w-fit px-2 py-1.5 dark:bg-neutral-700/50 bg-gray-200 rounded-xl transition-all duration-150">
           <button
             onClick={() => setChosenCategory("movie")}
             className={
-              "cursor-pointer px-3 rounded-sm py-0.5 font-ar text-sm " +
-              (chosenCategory === "movie" ? "bg-black/10 dark:bg-white/40" : "")
+              "cursor-pointer px-3 rounded-lg py-1 font-ar text-sm transition-all duration-200 " +
+              (chosenCategory === "movie" ? "bg-black/10 dark:bg-white/20" : "hover:bg-black/5 dark:hover:bg-white/10")
             }
           >
             {lang === "ar" ? "افلام" : "Movies"}
@@ -63,8 +63,8 @@ const TopRated = React.memo(() => {
           <button
             onClick={() => setChosenCategory("tv")}
             className={
-              "cursor-pointer px-3 rounded-sm py-0.5 font-ar text-sm " +
-              (chosenCategory === "tv" ? "bg-black/10 dark:bg-white/40" : "")
+              "cursor-pointer px-3 rounded-lg py-1 font-ar text-sm transition-all duration-200 " +
+              (chosenCategory === "tv" ? "bg-black/10 dark:bg-white/20" : "hover:bg-black/5 dark:hover:bg-white/10")
             }
           >
             {lang === "ar" ? "مسلسلات" : "Series"}
@@ -243,10 +243,10 @@ const MovieCard = ({
   const finalDate =
     lang === "ar"
       ? new Intl.DateTimeFormat("ar-EG-u-nu-arab", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        }).format(parse(rel_date, "yyyy-mm-dd", new Date()))
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      }).format(parse(rel_date, "yyyy-mm-dd", new Date()))
       : rel_date;
 
   useEffect(() => {
@@ -332,13 +332,13 @@ const MovieCard = ({
                         if (category === "movie") {
                           currentItem.mediaKeywords =
                             result?.data?.keywords &&
-                            result?.data?.keywords.length > 11
+                              result?.data?.keywords.length > 11
                               ? result?.data?.keywords?.slice(0, 11)
                               : result?.data?.keywords;
                         } else {
                           currentItem.mediaKeywords =
                             result?.data?.results &&
-                            result?.data?.results.length > 11
+                              result?.data?.results.length > 11
                               ? result?.data?.results?.slice(0, 11)
                               : result?.data?.results;
                         }
@@ -405,13 +405,13 @@ const MovieCard = ({
                         if (category === "movie") {
                           currentItem.mediaKeywords =
                             result?.data?.keywords &&
-                            result?.data?.keywords.length > 11
+                              result?.data?.keywords.length > 11
                               ? result?.data?.keywords?.slice(0, 11)
                               : result?.data?.keywords;
                         } else {
                           currentItem.mediaKeywords =
                             result?.data?.results &&
-                            result?.data?.results.length > 11
+                              result?.data?.results.length > 11
                               ? result?.data?.results?.slice(0, 11)
                               : result?.data?.results;
                         }

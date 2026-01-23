@@ -1,7 +1,13 @@
+import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
-import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Heart, HeartOff } from "lucide-react";
-import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Heart,
+  Info,
+  Play,
+} from "lucide-react";
 import { useNavigate } from "react-router";
 import useFetch from "../hooks/useFetch";
 import useTheme from "../hooks/useTheme";
@@ -15,450 +21,374 @@ const Trending = () => {
   const { lang } = useTheme();
   const navigate = useNavigate();
 
+  // State
   const [category, setCategory] = useState("movie");
-  const [currentTrendingIndex, setCurrentTrendingIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [retryCount, setRetryCount] = useState(0);
-  const [loadingCurrentIndexMedia, setLoadingCurrentIndexMedia] =
-    useState(false);
-  const [errorLoadingMedia, setErrorLoadingMedia] = useState(null);
-  const [currentIndexMedia, setCurrentIndexMedia] = useState(null);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
-
-  const { data, error, loading } = useFetch(
-    `${API_BASE_URL}trending?k=${category}`,
-    {
-      lang,
-      retryCount,
-    },
-  );
-
-  const MAX_ITEMS = data?.results.length || 0;
-
+  const [details, setDetails] = useState({
+    loading: false,
+    data: null,
+    error: null,
+    keywords: null,
+  });
   const [isLiked, setIsLiked] = useState(false);
-  const [mediaKeywords, setMediaKeywords] = useState(null);
 
-  const idOfMovieOrSeries = data?.results[currentTrendingIndex]?.id;
+  // Fetch Trending Data
+  const {
+    data: trendingData,
+    loading: trendingLoading,
+    error: trendingError,
+  } = useFetch(`${API_BASE_URL}trending?k=${category}`, {
+    lang,
+    retryCount,
+  });
 
-  // Mark initial load as complete when we first get data
+  const items = trendingData?.results || [];
+  const currentItem = items[currentIndex];
+
+  // Reset index on category change
   useEffect(() => {
-    if (data && isInitialLoad) {
-      setIsInitialLoad(false);
-    }
-  }, [data, isInitialLoad]);
+    setCurrentIndex(0);
+  }, [category]);
 
+  // Check LocalStorage for Like Status
   useEffect(() => {
-    const liked = JSON.parse(localStorage.getItem("likedMedia") || "[]")?.find(
-      (item) => item.id === data?.results[currentTrendingIndex].id,
-    );
+    if (!currentItem) return;
+    const likedList = JSON.parse(localStorage.getItem("likedMedia") || "[]");
+    setIsLiked(likedList.some((item) => item.id === currentItem.id));
+  }, [currentItem]);
 
-    setIsLiked(liked ? true : false);
-  }, [data, currentTrendingIndex]);
-
+  // Fetch Extra Details (Logos, Keywords)
   useEffect(() => {
-    if (!data?.results[currentTrendingIndex].id) return;
+    if (!currentItem) return;
 
-    (async () => {
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    const fetchDetails = async () => {
+      setDetails((prev) => ({ ...prev, loading: true, error: null }));
       try {
-        const result = await axios.get(
-          `${API_BASE_URL}${category === "movie" ? "movie" : "tv"}/${data?.results[currentTrendingIndex].id}/keywords`,
-        );
-
-        if (category === "movie") setMediaKeywords(result.data.keywords);
-        else setMediaKeywords(result.data.results);
-      } catch (e) {
-        setMediaKeywords({ error: true, val: e });
-      }
-    })();
-  }, [currentTrendingIndex, category, data]);
-
-  const handleNext = () => {
-    if (currentTrendingIndex === MAX_ITEMS - 1) {
-      setCurrentTrendingIndex(0);
-      setErrorLoadingMedia(null);
-    } else {
-      setCurrentTrendingIndex(currentTrendingIndex + 1);
-      setErrorLoadingMedia(null);
-    }
-  };
-  const handlePrev = () => {
-    if (currentTrendingIndex === 0) {
-      setCurrentTrendingIndex(MAX_ITEMS - 1);
-      setErrorLoadingMedia(null);
-    } else {
-      setCurrentTrendingIndex(currentTrendingIndex - 1);
-      setErrorLoadingMedia(null);
-    }
-  };
-
-  useEffect(() => {
-    let controller = null;
-    if (loading) {
-      return;
-    } else if (error) {
-      setErrorLoadingMedia({
-        message: "an error happend with the first use fetch",
-      });
-      return;
-    } else if (
-      (category === "tv" && data?.results[0]?.media_type === "movie") ||
-      (category === "movie" && data?.results[0]?.media_type === "tv") // this is to make sure im working on the correct type of data
-    ) {
-      return;
-    } else {
-      controller = new AbortController();
-      const signal = controller.signal;
-      fetchMedia(signal);
-    }
-
-    async function fetchMedia(signal) {
-      setLoadingCurrentIndexMedia(true);
-
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}media/${category}/${data?.results[currentTrendingIndex]?.id}`,
-          {
+        const [mediaRes, keywordsRes] = await Promise.all([
+          fetch(`${API_BASE_URL}media/${category}/${currentItem.id}`, {
             signal,
-          },
-        );
+          }).then((res) => res.json()),
+          axios.get(
+            `${API_BASE_URL}${category === "movie" ? "movie" : "tv"}/${currentItem.id}/keywords`
+          ),
+        ]);
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        setDetails({
+          loading: false,
+          data: mediaRes,
+          keywords:
+            category === "movie"
+              ? keywordsRes.data.keywords
+              : keywordsRes.data.results,
+          error: null,
+        });
+      } catch (err) {
+        if (err.name !== "CanceledError" && err.name !== "AbortError") {
+          setDetails((prev) => ({ ...prev, loading: false, error: err }));
         }
-        const result = await response.json();
-        setCurrentIndexMedia(result);
-        setErrorLoadingMedia(null);
-      } catch (error) {
-        setErrorLoadingMedia(error);
-      } finally {
-        setLoadingCurrentIndexMedia(false);
-      }
-    }
-
-    return () => {
-      if (controller) {
-        controller.abort();
       }
     };
-  }, [category, data, loading, error, currentTrendingIndex]);
 
-  // Only show full loading skeleton on initial load
-  if (loading && isInitialLoad) {
-    return (
-      <div className="w-full h-full bg-gray-100 dark:bg-neutral-800 animate-pulse rounded-xl"></div>
-    );
-  }
+    fetchDetails();
+    return () => controller.abort();
+  }, [currentItem, category]);
 
-  if (error) {
-    return (
-      <div className="w-full h-full bg-gray-100 dark:bg-neutral-800 grid place-content-center rounded-xl dark:text-white font-ar">
-        {getTextByLang(lang, "لقد حدث خطأ", "An unexpected Error has happend")}
-      </div>
-    );
-  }
+  // Handlers
+  const handleNavigate = (direction) => {
+    if (direction === "next") {
+      setCurrentIndex((prev) => (prev === items.length - 1 ? 0 : prev + 1));
+    } else {
+      setCurrentIndex((prev) => (prev === 0 ? items.length - 1 : prev - 1));
+    }
+  };
 
-  // Don't render the main content if we don't have data yet
-  if (!data) {
-    return (
-      <div className="w-full h-full bg-gray-100 dark:bg-neutral-800 animate-pulse rounded-xl"></div>
-    );
-  }
+  const toggleLike = () => {
+    const likedList = JSON.parse(localStorage.getItem("likedMedia") || "[]");
+    let newList;
+    if (isLiked) {
+      newList = likedList.filter((i) => i.id !== currentItem.id);
+    } else {
+      const itemToSave = {
+        ...currentItem,
+        mediaKeywords: details.keywords?.slice(0, 10),
+      };
+      newList = [...likedList, itemToSave];
+    }
+    localStorage.setItem("likedMedia", JSON.stringify(newList));
+    setIsLiked(!isLiked);
+  };
+
+  // Loading / Error States
+  if (trendingLoading && !trendingData) return <SkeletonLoader />;
+  if (trendingError) return <ErrorState lang={lang} />;
+  if (!currentItem) return null;
 
   return (
-    <motion.div className="w-full h-full bg-gray-100 dark:bg-neutral-800 rounded-xl relative">
-      {loading && !isInitialLoad && (
-        <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-xl z-50 flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      )}
-      {
-        <div
-          className={
-            "w-full h-full rounded-xl select-none " +
-            (lang === "ar"
-              ? " mask-radial-from-100% mask-radial-at-top-left mask-radial-farthest-corner"
-              : " mask-radial-from-100% mask-radial-at-bottom-right mask-radial-farthest-corner")
-          }
+    // Changed to h-full to fit the parent grid cell in Hero.jsx perfectly
+    <div className="relative w-full h-full overflow-hidden rounded-2xl bg-neutral-900 group shadow-2xl">
+
+      {/* 1. BACKGROUND LAYER */}
+      <AnimatePresence mode="popLayout">
+        <motion.div
+          key={currentItem.id}
+          initial={{ opacity: 0, scale: 1.1 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.7, ease: "easeInOut" }}
+          className="absolute inset-0 z-0"
         >
-          {/** MEDIA COVER MASK */}
           <img
+            src={BASE_MEDIA_URL + currentItem.backdrop_path}
+            alt={currentItem.title || currentItem.name}
             className="w-full h-full object-cover"
-            src={
-              BASE_MEDIA_URL + data.results[currentTrendingIndex].backdrop_path
-            }
-            alt=""
           />
-
-          {/** INFO OF MOVIE mask */}
+          <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-neutral-900/50 to-transparent z-10" />
           <div
-            className={
-              " absolute top-0 w-full h-full bg-black/90 " +
-              getTextByLang(
-                lang,
-                " mask-l-from-4 mask-t-from-105",
-                " mask-r-from-4 mask-t-from-105",
-              )
-            }
-          ></div>
-
-          {/** MEDIA INFO CONTAINER */}
-          <CurrentChosenItem
-            lang={lang}
-            data={data}
-            currentTrendingIndex={currentTrendingIndex}
-            loadingCurrentIndexMedia={loadingCurrentIndexMedia}
-            errorLoadingMedia={errorLoadingMedia}
-            currentIndexMedia={currentIndexMedia}
-            category={category}
-            isLiked={isLiked}
-            setIsLiked={setIsLiked}
-            mediaKeywords={mediaKeywords}
-            handleNext={handleNext}
-            handlePrev={handlePrev}
-            setRetryCount={setRetryCount}
-            navigate={navigate}
-            MAX_ITEMS={MAX_ITEMS}
-            setCurrentTrendingIndex={setCurrentTrendingIndex}
-            idOfMovieOrSeries={idOfMovieOrSeries}
+            className={`absolute inset-0 bg-gradient-to-r ${lang === "ar"
+                ? "from-transparent via-neutral-900/30 to-neutral-900/80"
+                : "from-neutral-900/80 via-neutral-900/30 to-transparent"
+              } z-10`}
           />
+        </motion.div>
+      </AnimatePresence>
 
-          {/** TOGGLE MEIDA CONTAINER */}
-          <div
-            className={
-              "absolute top-3  w-[96%] h-[48px] px-2 py-1 rounded-lg flex justify-around items-center gap-2  " +
-              getTextByLang(
-                lang,
-                "lg:left-5 md:left-5 sm:left-3 left-2",
-                "lg:right-5 md:right-5 sm:right-3 right-2",
-              )
-            }
-          >
-            <h2 className="font-ar text-lg font-bold text-white grow mx-1.5">
-              {getTextByLang(lang, "الرائج", "Trending")}
-            </h2>
-            <div className="flex items-center justify-center h-full px-1.5 py-1 rounded-4xl bg-black/80 w-[180px]  ">
-              <button
-                className={
-                  "grow font-ar lg:text-sm md:text-sm sm:text-[13px] h-full rounded-4xl text-[12px]  cursor-pointer text-white  " +
-                  (category === "movie" ? "bg-white/20" : "bg-none")
-                }
-                onClick={() => {
-                  if (category === "movie") {
-                    setRetryCount((prev) => prev + 1);
-                  } else {
-                    setCategory("movie");
-                    setCurrentTrendingIndex(0);
-                    setCurrentIndexMedia(null);
-                    setErrorLoadingMedia(null);
-                  }
-                }}
-              >
-                {getTextByLang(lang, "أفلام", "Movies")}
-              </button>
-              <button
-                className={
-                  "grow font-ar rounded-4xl h-full cursor-pointer lg:text-sm md:text-sm sm:text-[13px] text-[12px]  text-white bg-none " +
-                  (category === "tv" ? "bg-white/20" : "bg-none")
-                }
-                onClick={() => {
-                  if (category === "tv") {
-                    setRetryCount((prev) => prev + 1);
-                  } else {
-                    setCategory("tv");
-                    setCurrentTrendingIndex(0);
-                    setCurrentIndexMedia(null);
-                    setErrorLoadingMedia(null);
-                  }
-                }}
-              >
-                {getTextByLang(lang, "مسلسلات", "Series")}
-              </button>
-            </div>
-          </div>
-        </div>
-      }
-    </motion.div>
-  );
-};
-
-
-
-
-const CurrentChosenItem = ({
-  lang,
-  data,
-  currentTrendingIndex,
-  loadingCurrentIndexMedia,
-  errorLoadingMedia,
-  currentIndexMedia,
-  category,
-  isLiked,
-  setIsLiked,
-  mediaKeywords,
-  handleNext,
-  handlePrev,
-  setRetryCount,
-  navigate,
-  MAX_ITEMS,
-  setCurrentTrendingIndex,
-  idOfMovieOrSeries
-}) => {
-  return (
-    <div className="w-full h-full absolute top-0 before:content-[''] before:absolute before:h-60 before:bottom-0  before:bg-linear-to-t before:from-black before:to-black/0 before:w-full">
-      <ArrowRight
-        color="white"
-        className="absolute top-10/12 right-6 cursor-pointer z-50"
-        onClick={lang === "ar" ? handlePrev : handleNext}
-      />
-      <ArrowLeft
-        color="white"
-        className="absolute left-10 top-10/12 cursor-pointer z-50"
-        onClick={lang === "ar" ? handleNext : handlePrev}
-      />
-
-      {/** MEDIA INFO */}
-      <div className="w-[600px] h-[70%] bg-transparent flex px-5  flex-col items-start  justify-end gap-2 lg:mt-1 md:mt-1 mt-6">
-        {loadingCurrentIndexMedia ? (
-          <div className="w-6 h-6 rounded-full animate-spin border-t-2 border-t-red-500 " />
-        ) : errorLoadingMedia ? (
-          <div className="text-white">
-            {data?.results[currentTrendingIndex]?.title ||
-              data?.results[currentTrendingIndex]?.name ||
-              getTextByLang(lang, "لا يوجد عنوان", "No Title")}
-          </div>
-        ) : currentIndexMedia?.logos?.length > 0 ? (
-          <motion.div
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="flex justify-center items-center w-fit  h-fit"
-          >
-            {currentIndexMedia.logos.filter(
-              (logo) => logo["iso_639_1"] === "en",
-            ).length === 0 ? (
-              <h2 className="text-white font-ar lg:text-2xl md:text-lg sm:text-sm text-[13px]">
-                {data?.results[currentTrendingIndex]?.title ||
-                  data?.results[currentTrendingIndex]?.name}
-              </h2>
-            ) : (
-              <img
-                src={
-                  BASE_LOGO_URL +
-                  currentIndexMedia.logos.filter(
-                    (logo) => logo["iso_639_1"] === "en",
-                  )[0]?.file_path
-                }
-                className={
-                  "w-full select-none sm:h-[35px] md:h-[45px] lg:h-[45px] object-cover" +
-                  (Number(
-                    currentIndexMedia.logos.filter(
-                      (logo) => logo["iso_639_1"] === "en",
-                    )[0]?.height,
-                  ) > 300
-                    ? " h-[35px]"
-                    : " h-[15px]")
-                }
-                alt="logo"
-              />
-            )}
-          </motion.div>
-        ) : data?.results.length > 0 ? (
-          <div className="text-white">
-            {data.results[currentTrendingIndex].title}
-          </div>
-        ) : (
-          <div>NO TITLE</div>
-        )}
-
-        <div className="h-fit z-40 ">
-          <p className="font-ar lg:text-sm md:text-sm sm:text-[13px] text-[12px] w-[300px] line-clamp-2 text-white">
-            {data.results[currentTrendingIndex].overview}
-          </p>
-        </div>
-
-        <div className="w-fit h-10  z-40  flex items-center justify-around gap-3">
-          <button
-            className="lg:w-[130px] md:w-[130px] sm:w-[110px] w-[80px] h-9 rounded-lg cursor-pointer text-white font-ar font-medium text-sm bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all duration-300 shadow-lg"
-            onClick={() =>
-              navigate(
-                `/${category === "movie" ? "movies" : "series"}/${idOfMovieOrSeries}${lang === "ar" ? "?l=ar" : ""}`,
-              )
-            }
-          >
-            {getTextByLang(lang, "فتح", "Open")}
-          </button>
-          <button
-            className="px-3 cursor-pointer rounded-lg bg-rose-600/45 max-w-fit hover:bg-rose-600/80 h-10/12 transition-all duration-150 text-white font-ar text-sm"
-            onClick={() => {
-              const storedLikedMedia = JSON.parse(
-                localStorage.getItem("likedMedia") || "[]",
-              );
-
-              const currentMediaItem =
-                data?.results[currentTrendingIndex];
-
-              if (!isLiked) {
-                currentMediaItem.mediaKeywords =
-                  mediaKeywords && mediaKeywords.length > 6
-                    ? mediaKeywords?.slice(0, 11)
-                    : mediaKeywords;
-
-                storedLikedMedia.push(currentMediaItem);
-                localStorage.setItem(
-                  "likedMedia",
-                  JSON.stringify(storedLikedMedia),
-                );
-
-                setIsLiked(true);
-              } else {
-                const newFilteredMedia = storedLikedMedia.filter(
-                  (media) => media.id !== currentMediaItem.id,
-                );
-
-                localStorage.setItem(
-                  "likedMedia",
-                  JSON.stringify(newFilteredMedia),
-                );
-
-                setIsLiked(false);
-              }
-            }}
-          >
-            {isLiked ? (
-              <div className="flex max-w-fit flex-row items-center justify-center gap-2">
-                <HeartOff size={18} />{" "}
-                {getTextByLang(lang, "لم يعجبني", "Un Like")}
-              </div>
-            ) : (
-              <div className="flex flex-row items-center justify-center gap-2">
-                <Heart size={18} />{" "}
-                {getTextByLang(lang, "أعجبني", "Like")}
-              </div>
-            )}
-          </button>
-        </div>
+      {/* 2. CONTENT LAYER */}
+      {/* Reduced padding specifically for <450px screens (px-4 pb-8) */}
+      <div className="absolute inset-0 z-20 flex flex-col justify-end pb-8 px-4 md:px-12 md:pb-12 lg:px-16">
+        <SlideInfo
+          lang={lang}
+          item={currentItem}
+          details={details}
+          isLiked={isLiked}
+          onLike={toggleLike}
+          onOpen={() =>
+            navigate(
+              `/${category === "movie" ? "movies" : "series"}/${currentItem.id}${lang === "ar" ? "?l=ar" : ""
+              }`
+            )
+          }
+        />
       </div>
 
-      {/** CAROUSEL INDICATOR */}
-      <div className="absolute top-[90%] right-[0.75%] w-[98%] h-7 flex items-center justify-center gap-2 px-2">
-        {Array.from({ length: MAX_ITEMS }).map((_, index) => (
-          <div
-            key={index}
-            className={
-              "grow h-[3px]  rounded-2xl cursor-pointer " +
-              (currentTrendingIndex === index
-                ? "bg-rose-600"
-                : "bg-white")
-            }
-            onClick={() => {
-              if (currentTrendingIndex === index) {
-                setRetryCount((prev) => prev + 1);
-                return;
-              }
-              setCurrentTrendingIndex(index);
-            }}
-          ></div>
-        ))}
+      {/* 3. TOP CONTROLS */}
+      {/* Scaled down for mobile to avoid covering content */}
+      <div className="absolute top-3 right-3 md:top-6 md:right-6 z-30 transform scale-75 origin-top-right md:scale-100">
+        <CategoryToggle
+          lang={lang}
+          category={category}
+          setCategory={setCategory}
+        />
+      </div>
+
+      {/* 4. NAVIGATION ARROWS (Hidden on mobile) */}
+      <div className="absolute inset-y-0 left-4 z-30 hidden md:flex items-center">
+        <NavButton
+          icon={<ArrowLeft size={24} />}
+          onClick={() => handleNavigate(lang === "ar" ? "next" : "prev")}
+        />
+      </div>
+      <div className="absolute inset-y-0 right-4 z-30 hidden md:flex items-center">
+        <NavButton
+          icon={<ArrowRight size={24} />}
+          onClick={() => handleNavigate(lang === "ar" ? "prev" : "next")}
+        />
+      </div>
+
+      {/* 5. PAGINATION */}
+      <div className="absolute bottom-3 left-0 right-0 z-30 px-4 md:px-16">
+        <Pagination
+          total={items.length}
+          current={currentIndex}
+          onChange={setCurrentIndex}
+        />
       </div>
     </div>
   );
-}
+};
+
+/* --- Sub Components --- */
+
+const SlideInfo = ({ lang, item, details, isLiked, onLike, onOpen }) => {
+  const logoPath = useMemo(() => {
+    if (!details.data?.logos) return null;
+    const enLogo = details.data.logos.find((l) => l.iso_639_1 === "en");
+    return enLogo ? enLogo.file_path : details.data.logos[0]?.file_path;
+  }, [details.data]);
+
+  const title = item.title || item.name;
+
+  return (
+    <div
+      className={`max-w-2xl flex flex-col gap-1.5 md:gap-4 ${lang === "ar" ? "items-start text-right" : "items-start text-left"
+        }`}
+      dir={lang === "ar" ? "rtl" : "ltr"}
+    >
+      {/* Title / Logo Area */}
+      {/* Adjusted heights: h-12 on mobile vs h-28 on desktop */}
+      <div className="h-12 md:h-28 flex items-end mb-1">
+        {details.loading ? (
+          <div className="h-6 w-32 md:h-8 md:w-48 bg-white/20 animate-pulse rounded-md" />
+        ) : logoPath ? (
+          <motion.img
+            key={logoPath}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            src={BASE_LOGO_URL + logoPath}
+            alt={title}
+            // Max width restricted on mobile
+            className="max-h-full max-w-[140px] md:max-w-[350px] object-contain drop-shadow-xl"
+          />
+        ) : (
+          <motion.h1
+            key={title}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            // Smaller font on mobile (2xl) vs desktop (5xl)
+            className="font-ar font-black text-2xl md:text-5xl text-white drop-shadow-lg leading-tight line-clamp-1"
+          >
+            {title}
+          </motion.h1>
+        )}
+      </div>
+
+      {/* Overview */}
+      <motion.p
+        key={item.overview}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        // Significantly smaller text and tighter clamp for mobile
+        className="font-ar text-gray-200 text-[10px] xs:text-xs md:text-base line-clamp-2 leading-relaxed max-w-lg drop-shadow-md"
+      >
+        {item.overview}
+      </motion.p>
+
+      {/* Action Buttons */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        // Tighter gap
+        className="flex items-center gap-2 mt-2 md:mt-4"
+      >
+        <button
+          onClick={onOpen}
+          // Compact padding (px-3 py-1.5) and text size (text-xs) for mobile
+          className="group relative px-3 py-1.5 md:px-6 md:py-3 rounded-xl bg-white text-black font-bold font-ar text-xs md:text-base flex items-center gap-1.5 md:gap-2 hover:bg-gray-200 transition-all active:scale-95"
+        >
+          <Play className="w-3 h-3 md:w-5 md:h-5" fill="currentColor" />
+          <span>{getTextByLang(lang, "مشاهدة", "Watch")}</span>
+        </button>
+
+        <button
+          onClick={onLike}
+          className="px-3 py-1.5 md:px-6 md:py-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 text-white font-ar font-medium text-xs md:text-base flex items-center gap-1.5 md:gap-2 hover:bg-white/20 transition-all active:scale-95"
+        >
+          <Heart
+            className={`w-3 h-3 md:w-5 md:h-5 ${isLiked ? "text-rose-500 fill-rose-500" : ""
+              }`}
+          />
+          <span className="hidden xs:inline">
+            {isLiked
+              ? getTextByLang(lang, "مضاف", "Added")
+              : getTextByLang(lang, "قائمتي", "List")}
+          </span>
+        </button>
+
+        <button
+          onClick={onOpen}
+          className="p-1.5 md:p-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 transition-all active:scale-95"
+        >
+          <Info className="w-3 h-3 md:w-5 md:h-5" />
+        </button>
+      </motion.div>
+    </div>
+  );
+};
+
+const CategoryToggle = ({ lang, category, setCategory }) => (
+  <div className="flex p-1 bg-black/40 backdrop-blur-xl border border-white/5 rounded-full shadow-xl">
+    {["movie", "tv"].map((cat) => {
+      const isActive = category === cat;
+      const label =
+        cat === "movie"
+          ? getTextByLang(lang, "أفلام", "Movies")
+          : getTextByLang(lang, "مسلسلات", "TV"); // Shortened label for mobile
+
+      return (
+        <button
+          key={cat}
+          onClick={() => !isActive && setCategory(cat)}
+          className={`relative px-3 py-1 md:px-5 md:py-1.5 rounded-full text-xs md:text-sm font-ar font-medium transition-all duration-300 ${isActive ? "text-white" : "text-gray-400 hover:text-white"
+            }`}
+        >
+          {isActive && (
+            <motion.div
+              layoutId="activeTab"
+              className="absolute inset-0 bg-rose-600 rounded-full shadow-lg shadow-rose-600/30"
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            />
+          )}
+          <span className="relative z-10">{label}</span>
+        </button>
+      );
+    })}
+  </div>
+);
+
+const Pagination = ({ total, current, onChange }) => (
+  <div className="flex items-center gap-1.5 h-1">
+    {Array.from({ length: total }).map((_, idx) => (
+      <button
+        key={idx}
+        onClick={() => onChange(idx)}
+        className={`h-0.5 md:h-1 rounded-full transition-all duration-300 ${idx === current
+            ? "w-4 md:w-8 bg-rose-500"
+            : "w-2 md:w-4 bg-white/30 hover:bg-white/60"
+          }`}
+        aria-label={`Go to slide ${idx + 1}`}
+      />
+    ))}
+  </div>
+);
+
+const NavButton = ({ icon, onClick }) => (
+  <button
+    onClick={onClick}
+    className="p-3 rounded-full bg-black/20 hover:bg-black/50 backdrop-blur-sm border border-white/5 text-white transition-all transform hover:scale-110 active:scale-95 group"
+  >
+    {React.cloneElement(icon, {
+      className: "opacity-70 group-hover:opacity-100 transition-opacity",
+    })}
+  </button>
+);
+
+const SkeletonLoader = () => (
+  <div className="w-full h-full bg-neutral-900 rounded-2xl animate-pulse relative overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-r from-neutral-800 to-neutral-900 animate-shimmer" />
+    <div className="absolute bottom-8 left-4 md:bottom-12 md:left-12 space-y-3">
+      <div className="h-8 md:h-10 w-32 md:w-64 bg-neutral-700 rounded-lg" />
+      <div className="h-3 md:h-4 w-48 md:w-96 bg-neutral-800 rounded-lg" />
+      <div className="flex gap-3 pt-2">
+        <div className="h-8 md:h-12 w-20 md:w-32 bg-neutral-700 rounded-xl" />
+        <div className="h-8 md:h-12 w-20 md:w-32 bg-neutral-800 rounded-xl" />
+      </div>
+    </div>
+  </div>
+);
+
+const ErrorState = ({ lang }) => (
+  <div className="w-full h-full bg-neutral-900 rounded-2xl flex flex-col items-center justify-center text-neutral-500">
+    <Info size={32} className="mb-4 opacity-50" />
+    <p className="font-ar text-sm text-center px-4">
+      {getTextByLang(lang, "تعذر تحميل المحتوى", "Could not load content")}
+    </p>
+  </div>
+);
+
 export default Trending;

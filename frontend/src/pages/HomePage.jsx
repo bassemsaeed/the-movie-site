@@ -1,558 +1,432 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import { getTextByLang } from "../utils";
 import { Link, Outlet, useNavigate, useNavigation } from "react-router";
 import useTheme from "../hooks/useTheme";
-import { Menu, MoonStar, Search, Sun, X } from "lucide-react";
-import { motion } from "framer-motion";
+import {
+  Menu, Moon, Search, Sun, X, Film, Tv, User, Globe,
+  Star, Calendar, ArrowRight, Loader2
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
+const IMAGE_BASE_URL = "https://media.themoviedb.org/t/p/w220_and_h330_face/";
 
 function HomePage() {
-  let navigate = useNavigate();
-
+  const navigate = useNavigate();
   const { lang, theme, toggleTheme, setLanguage } = useTheme();
-  const [showSeachPage, setShowSeachPage] = useState(false);
+
+  // State
+  const [showSearchPage, setShowSearchPage] = useState(false);
   const [showNavMenu, setShowNavMenu] = useState(false);
   const [loadingResults, setLoadingResults] = useState(false);
   const [searchResults, setSearchResults] = useState(null);
-  const [loadingResultsError, setLoadingResultsError] = useState(null);
-  const [retryCount, setRetryCount] = useState(0); // For retry mechanism
+  const [error, setError] = useState(null);
+  const isArabic = lang === "ar";
   const [searchQuery, setSearchQuery] = useState("");
-  const isFirstLoading = useRef(true);
+  const [activeTab, setActiveTab] = useState("all"); // 'all', 'movie', 'tv', 'person'
 
   const navigation = useNavigation();
   const isNavigating = Boolean(navigation.location);
-  const IMAGE_BASE_URL = "https://media.themoviedb.org/t/p/w220_and_h330_face/"; // Poster image base URL
+  const inputRef = useRef(null);
 
+  // Focus input when search opens
+  useEffect(() => {
+    if (showSearchPage && inputRef.current) {
+      // Small delay to ensure animation doesn't glitch focus
+      setTimeout(() => inputRef.current.focus(), 100);
+    }
+  }, [showSearchPage]);
+
+  // Handle ESC key
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") {
+        setShowSearchPage(false);
+        setShowNavMenu(false);
+      }
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, []);
+
+  // Search Logic
   useEffect(() => {
     if (!searchQuery.trim()) {
       setSearchResults(null);
       setLoadingResults(false);
-      setLoadingResultsError(null);
       return;
     }
 
-    const controller = new AbortController(); // For cleanup and aborting fetch
-    const signal = controller.signal;
-
-    const timeoutId = setTimeout(() => {
-      async function fetchSearchResultsData() {
-        setLoadingResults(true);
-        setLoadingResultsError(null); // Reset error before new attempt
-        try {
-          const response = await fetch(
-            `${API_BASE_URL}search?q=${searchQuery}&l=${lang}`,
-            { signal }, // Pass signal to fetch
-          );
-
-          if (!response.ok) {
-            let errorBody = "Could not retrieve error details from server.";
-            try {
-              errorBody = await response.text();
-            } catch (e) {
-              // Ignore if reading body fails
-            }
-            throw new Error(
-              `HTTP error! Status: ${response.status}. Server says: ${errorBody}`,
-            );
-          }
-
-          const data = await response.json();
-          setSearchResults(data);
-        } catch (error) {
-          if (error.name === "AbortError") {
-            // Fetch was aborted, common during rapid input changes or unmount
-          } else {
-            setLoadingResultsError(error);
-            setSearchResults(null); // Clear results on error
-          }
-        } finally {
-          setLoadingResults(false);
-        }
+    const controller = new AbortController();
+    const timeoutId = setTimeout(async () => {
+      setLoadingResults(true);
+      setError(null);
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}search?q=${searchQuery}&l=${lang}`,
+          { signal: controller.signal }
+        );
+        if (!response.ok) throw new Error("Search failed");
+        const data = await response.json();
+        setSearchResults(data);
+      } catch (err) {
+        if (err.name !== "AbortError") setError(err.message);
+      } finally {
+        setLoadingResults(false);
       }
-      fetchSearchResultsData();
-    }, 1000); // Debounce search
+    }, 500);
 
     return () => {
       clearTimeout(timeoutId);
-      controller.abort(); // Abort fetch on cleanup
+      controller.abort();
     };
-  }, [searchQuery, lang, retryCount]);
+  }, [searchQuery, lang]);
 
-  const getTitle = (item) =>
-    item.title ||
-    item.name ||
-    (lang === "ar" ? "عنوان غير متوفر" : "Title not available");
-
-  const getYear = (item) => {
-    if (item.media_type === "movie" && item.release_date) {
-      return `(${item.release_date.substring(0, 4)})`;
-    }
-    if (item.media_type === "tv" && item.first_air_date) {
-      return `(${item.first_air_date.substring(0, 4)})`;
-    }
-    return "";
-  };
-
-  const placeholderImage = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAWlBMVEXv8fNod4f19vhkdIRcbX52g5KPmqX29/iYoq3l6OuCj5vd4eTr7fBfcIFaa33M0dbBx82SnKe7wchtfIt8iZejq7TU2N2Ik6CwuL/Gy9Gqsrqbpa/P1NmhqrNz0egRAAADBklEQVR4nO3c63KqMBRAYUiwwUvEete27/+ax1tVAqhwEtnprO+XM62Oyw2CGTFJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJe6Mb5vqL7jjsws/wgln/dddzBZZjocuxj2HaiWNg1JL/oO3GVBA9PUzvvdF80q7AgPQ/zot1DlOnThyFBIIYWvFtrMK3mFdj30aWzFFWZjr+/qE4mFXh+YwrehsDMK34bCzmIoVEad1nC6PbD8QpXMNwOdDvKi2xMUX2jm2h7/onU2WHcZo/RCld8WN3TWZR1CeKH6LK1tTGftE2UXqpmzPGXbLwnKLkzcT8X6s/UQRReqWWX9LWs9RNGF5qOysmFb74miC9XCDUzt6k8VJtXC9jsihW9Tu5Uuq/vhvlKokuGjc1bRhWZVLdw5MWq8mU6zfNL4wKILk/W0spW6dyvOZ61p4wKd7EIzcoZot+UQVVxeA62bEmUXJuPyIV8PnDsVtxXtpikKL1S7++1U6/IZzV1g8xSFFx4i9HWMdjksNZQCGxOlFyZq8jW1VmubpZV90PngUZ8ovvDYuNt//Wy/1ZPAhsQICo+rUMa4T70msP7tJorCun8vKofKhilGWlg7wfopxlnYMMHaKUZZ2DjBuinGWPgwsDLFCAufBLqJ8RU+DXQ21OgKXwgsTzG2wpcCj1O8nsJGVvjgMNE0xbgKX5zgeYqXxKgKX57geYrnDTWmwhYTvJtiRIUtA3/fbuIpbB14mWI0hR0Cz1OMpbBT4CkxiaOwY+BpQ42isNVhwk283hJc2HmC5Va5hf8xwTgK/UxQcKGvQLGF3gKlFvoLFFroMVBmoc9AkYWeDhNyC1Xh9aJLeYV+Jyiw0Os+KLHQe6C0Qv+BwgoDBMoqDBEoqtCECJRUOPz2e5gQV2jnYa7qllOYBvr5CEGFgVBIIYXPmJ/ghZueZ+hexOWd+w3q9ycuwg5R2377DsapDflbX7rTFah+TbajQSij/aT/wNNF26FUvoELAAAAAAAAAAAAAAAAAAAAAAAAAAAA4G/4B9L3P1vg3y4/AAAAAElFTkSuQmCC`;
+  // Close menus on navigation
+  useEffect(() => {
+    setShowSearchPage(false);
+    setShowNavMenu(false);
+  }, [navigate]);
 
   return (
-    <div className="h-screen bg-white w-screen relative transition-all duration-150 dark:bg-neutral-900 overflow-y-hidden overflow-x-hidden">
-      {/** LOADING INDICATOR */}
-      {isNavigating ? (
-        <div dir={"ltr"} className="w-screen h-[3px]  fixed top-0 z-[53]">
-          <div className="w-[150px] bg-rose-500 animate-slide h-full"></div>
+    <div className="min-h-screen bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 transition-colors duration-300 relative overflow-x-hidden font-ar">
+
+      {/* --- PROGRESS BAR --- */}
+      {isNavigating && (
+        <div dir="ltr" className="fixed top-0 left-0 w-full h-[3px] z-[100]">
+          <div className="h-full bg-rose-500 animate-slide w-[30%] shadow-[0_0_10px_rgba(244,63,94,0.7)]"></div>
         </div>
-      ) : null}
-      {/** NAV BAR */}
-      <motion.div
-        initial={{ opacity: isFirstLoading.current ? 1 : 0 }} // Avoid initial animation flicker on first load if not desired
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="min-w-fit h-[60px] lg:gap-2 flex py-2 px-4 sm:px-5 md:px-6 lg:px-7 sticky top-0 z-40 justify-center items-center bg-white dark:bg-neutral-900 shadow-sm"
+      )}
+
+      {/* --- NAVBAR --- */}
+      <motion.nav
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="sticky top-0 z-40 w-full h-[64px] px-4 md:px-8 flex items-center justify-between
+                   bg-white/90 dark:bg-neutral-950/90 backdrop-blur-xl border-b border-gray-200 dark:border-white/5"
       >
-        {/** MENU ICON FOR SMALLER SCREENS  */}
-        <div className="flex w-fit h-full justify-center items-center ">
-          <Menu
-            size={24}
-            className=" cursor-pointer text-black dark:text-white"
-            // color={theme === "light" ? "black" : "white"} // Handled by className now
-            onClick={() => setShowNavMenu(!showNavMenu)}
-          />
-        </div>
-
-        {/* Main Search Input (hidden on small screens initially) */}
-        <div className=" hidden sm:flex lg:flex md:flex grow h-full relative items-center justify-center rounded-[8px] mx-2">
-          <input
-            type="text"
-            onFocus={() => {
-              setShowSeachPage(true);
-            }}
-            className="w-full h-full px-5 outline-none antialiased font-ar mt-1 dark:placeholder:text-gray-400 dark:text-white bg-gray-100 dark:bg-neutral-800 rounded-[8px]"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={
-              lang === "ar"
-                ? "ابحث عن أي فيلم, مسلسل أو شخصية"
-                : "Search any movie, tv series or characters"
-            }
-          />
-        </div>
-
-        {/** SEARCH ICON FOR SMALLER SCREENS INSTEAD OF FULL SEARCH BAR */}
-        <div
-          className="lg:hidden md:hidden sm:hidden h-full w-[50px] flex justify-center items-center "
-          style={{
-            marginRight: lang === "ar" ? 0 : "auto",
-            marginLeft: lang === "ar" ? "auto" : 0,
-          }}
-        >
-          <Search
-            size={24}
-            className="cursor-pointer text-black dark:text-white"
-            onClick={() => setShowSeachPage(!showSeachPage)}
-          />
-        </div>
-
-        {/* Theme Toggle & Language Switcher */}
-        <div
-          className="flex w-fit text-black text-[16px] h-full 
-        gap-2 items-center dark:text-white px-2 font-ar"
-        >
-          {theme === "dark" ? (
-            <Sun
-              size={20}
-              className="cursor-pointer"
-              onClick={() => {
-                toggleTheme();
-              }}
-            />
-          ) : (
-            <MoonStar
-              size={20}
-              className="cursor-pointer"
-              onClick={() => {
-                toggleTheme();
-              }}
-            />
-          )}
-          <div className="flex items-center gap-2 mt-1.5">
-            <button
-              className={`select-none ${lang === "en"
-                ? "cursor-pointer text-black dark:text-white font-semibold"
-                : "cursor-pointer text-neutral-400 dark:text-neutral-500"
-                }`}
-              onClick={() => {
-                isFirstLoading.current = false;
-                setLanguage("en");
-              }}
-            >
-              EN
-            </button>
-            <div className="w-[2px] h-5 bg-black dark:bg-white"></div>
-            <button
-              className={`select-none ${lang === "ar"
-                ? "cursor-pointer text-black dark:text-white font-semibold"
-                : "cursor-pointer text-neutral-400 dark:text-neutral-500"
-                }`}
-              onClick={() => {
-                isFirstLoading.current = false;
-                setLanguage("ar");
-              }}
-            >
-              AR
-            </button>
-          </div>
-        </div>
-      </motion.div>
-      <Outlet /> {/* For child routes */}
-      {/* Search Page Overlay */}
-      {showSeachPage ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="z-30 w-full h-[calc(100vh-60px)] dark:bg-zinc-800 overflow-hidden absolute bg-zinc-300 top-[60px] flex flex-col"
-        >
-          <div className="w-full flex justify-end py-2 px-7 items-center">
-            <X
-              size={28}
-              className="cursor-pointer text-black dark:text-white"
-              onClick={() => setShowSeachPage(false)}
-            />
-          </div>
-
-          {/* Search Input for small screens (when search page is open) */}
-          <div className="w-11/12 self-center h-[55px] rounded-2xl lg:hidden md:hidden sm:hidden flex justify-center  items-center bg-white dark:bg-zinc-700 shadow">
-            <input
-              type="text"
-              autoFocus
-              className="w-full dark:text-white font-ar h-[55px] px-5 outline-none bg-transparent rounded-2xl"
-              placeholder={getTextByLang(
-                lang,
-                "ابحث عن أي فيلم, مسلسل أو شخصية",
-                "Search any movie, tv series or characters",
-              )}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              value={searchQuery}
-            />
-          </div>
-
-          {/** SEARCH RESULTS AREA */}
-          <div
-            className="w-full hidden-scrollbar flex-grow border-t border-gray-300 dark:border-gray-700 overflow-y-auto p-4 mt-3 " // Modified for scrollable grid
+        {/* Left: Menu & Logo */}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setShowNavMenu(true)}
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
           >
-            {loadingResults ? (
-              <div className="flex justify-center items-center h-full">
-                <div className="loading-spinner"></div>
-              </div>
-            ) : loadingResultsError ? (
-              <div className="font-ar dark:text-red-400 text-red-500 h-full flex justify-center items-center flex-col text-center p-4">
-                <h4 className="text-lg font-semibold">
-                  {lang === "ar"
-                    ? "لقد حدث خطأ اثناء جلب المعلومات"
-                    : "An unexpected error occurred"}
-                </h4>
-                <p className="text-sm mt-1 mb-4 dark:text-red-300 text-red-400">
-                  {loadingResultsError.message}
-                </p>
+            <Menu className="w-6 h-6" />
+          </button>
+
+          <Link to="/" className="font-black text-2xl tracking-tighter hover:text-rose-500 transition-colors">
+            MOVI<span className="text-rose-500">X</span>
+          </Link>
+        </div>
+
+        {/* Center: Fake Search Bar (Trigger) */}
+        <div
+          onClick={() => setShowSearchPage(true)}
+          className="hidden md:flex flex-1 max-w-lg mx-8 h-10 items-center px-4 rounded-full 
+                       bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500 
+                       cursor-pointer hover:bg-gray-200 dark:hover:bg-neutral-700 transition-colors border border-transparent hover:border-gray-300 dark:hover:border-neutral-600"
+        >
+          <Search className="w-4 h-4 mr-3" />
+          <span className="text-sm">{getTextByLang(lang, "بحث سريع...", "Quick Search...")}</span>
+          <span className="ml-auto text-xs opacity-60 border border-gray-300 dark:border-neutral-600 rounded px-1.5 py-0.5">/</span>
+        </div>
+
+        {/* Right: Actions */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowSearchPage(true)}
+            className="md:hidden p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800"
+          >
+            <Search className="w-5 h-5" />
+          </button>
+
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors text-yellow-500 dark:text-blue-400"
+          >
+            {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
+
+          <div className="h-6 w-[1px] bg-gray-300 dark:bg-neutral-800 mx-2" />
+
+          <button
+            onClick={() => setLanguage(lang === "en" ? "ar" : "en")}
+            className="px-2 font-bold text-sm hover:text-rose-500 transition-colors"
+          >
+            {lang.toUpperCase()}
+          </button>
+        </div>
+      </motion.nav>
+
+      {/* --- MAIN CONTENT --- */}
+      <main className="relative z-0">
+        <Outlet />
+      </main>
+
+      {/* --- FULL SCREEN SEARCH OVERLAY --- */}
+      <AnimatePresence>
+        {showSearchPage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-xl flex flex-col"
+          >
+            {/* Header: Input Area */}
+            <div className="w-full max-w-5xl mx-auto pt-6 px-4 pb-4 border-b border-gray-200 dark:border-neutral-800">
+              <div className="relative flex items-center">
+                <Search className="w-6 h-6 text-gray-400 absolute left-4 rtl:right-4 rtl:left-auto" />
+                <input
+                  ref={inputRef}
+                  type="text"
+                  className="w-full bg-gray-100 dark:bg-neutral-900 rounded-2xl py-4 pl-14 pr-14 text-xl outline-none dark:text-white placeholder:text-gray-400 shadow-inner"
+                  placeholder={getTextByLang(lang, "ابحث عن الأفلام، المسلسلات، والأشخاص...", "Search movies, shows, people...")}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-14 rtl:left-14 rtl:right-auto p-1 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded-full"
+                  >
+                    <X className="w-5 h-5 text-gray-500" />
+                  </button>
+                )}
                 <button
-                  className="text-black dark:text-white cursor-pointer border border-gray-400 dark:border-gray-600 h-12 rounded-md px-6 py-2 hover:bg-gray-100 dark:hover:bg-neutral-700 transition-colors"
-                  onClick={() => setRetryCount((c) => c + 1)}
+                  onClick={() => setShowSearchPage(false)}
+                  className="absolute right-4 rtl:left-4 rtl:right-auto p-2 bg-gray-200 dark:bg-neutral-800 rounded-lg hover:bg-rose-500 hover:text-white transition-colors text-xs font-bold"
                 >
-                  {lang === "ar" ? "أعد المحاوله" : "Try Again"}
+                  ESC
                 </button>
               </div>
-            ) : searchResults && searchResults.results ? ( // Results exist
-              searchResults.results.length > 0 ? (
-                <div className="flex flex-col gap-5 ">
-                  {searchResults.results.filter(
-                    (item) => item.media_type === "movie",
-                  ).length > 0 ? (
-                    <div className="flex flex-col gap-3 ">
-                      <h1 className="font-ar dark:text-white">
-                        {getTextByLang(lang, "أفلام", "Movies")}
-                      </h1>
-                      <div className="grid lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 gap-5">
-                        {searchResults.results
-                          .filter((item) => item.media_type === "movie")
-                          .map((item) => (
-                            <motion.div
-                              key={item.id}
-                              initial={{ opacity: 0, scale: 0.98 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.3 }}
-                              className="bg-white dark:bg-neutral-800 rounded-lg shadow-lg overflow-hidden flex flex-col group transform hover:scale-101 transition-transform duration-200"
-                            >
-                              <img
-                                src={
-                                  item.poster_path
-                                    ? `${IMAGE_BASE_URL}${item.poster_path}`
-                                    : item.profile_path
-                                      ? `${IMAGE_BASE_URL}${item.profile_path}`
-                                      : placeholderImage
-                                }
-                                alt={getTitle(item)}
-                                className="w-full h-auto aspect-[2/3] object-cover cursor-pointer" // Fixed aspect ratio for poster
-                                onClick={() =>
-                                  navigate(
-                                    `/movies/${item.id}${lang === "ar" ? "?l=ar" : ""}`,
-                                  )
-                                }
-                              />
-                              <div className="p-3 flex flex-col flex-grow">
-                                <h3 className="text-md font-ar font-semibold text-black dark:text-white truncate group-hover:text-rose-600 dark:group-hover:text-rose-500 transition-colors">
-                                  {getTitle(item)}
-                                </h3>
-                                <p className="text-xs font-ar text-gray-500 dark:text-gray-400 uppercase mt-0.5">
-                                  {getTextByLang(
-                                    lang,
-                                    item.media_type === "movie"
-                                      ? "فيلم"
-                                      : item.media_type === "tv"
-                                        ? "مسلسل"
-                                        : "شخص",
-                                    item.media_type,
-                                  )}{" "}
-                                  {getYear(item)}
-                                </p>
-                                {item.overview && (
-                                  <p className="text-xs text-gray-700 dark:text-gray-300 mt-2 line-clamp-3 flex-grow">
-                                    {" "}
-                                    {/* Requires @tailwindcss/line-clamp plugin */}
-                                    {item.overview}
-                                  </p>
-                                )}
-                                <p className="text-xs font-ar text-gray-500 dark:text-gray-400 mt-auto pt-2">
-                                  {lang === "ar" ? "تقييم: " : "Rating: "}{" "}
-                                  {item.vote_average
-                                    ? item.vote_average.toFixed(1)
-                                    : "N/A"}{" "}
-                                  ({item.vote_count}{" "}
-                                  {lang === "ar" ? "صوت" : "votes"})
-                                </p>
-                              </div>
-                            </motion.div>
-                          ))}
-                      </div>
-                    </div>
-                  ) : null}
 
-                  {searchResults.results.filter(
-                    (item) => item.media_type === "tv",
-                  ).length > 0 ? (
-                    <div className="flex flex-col gap-3">
-                      <h1 className="font-ar dark:text-white">
-                        {getTextByLang(lang, "مسلسلات", "TV series")}
-                      </h1>
-                      <div className="grid lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3  grid-cols-2  gap-5">
-                        {searchResults.results
-                          .filter((item) => item.media_type === "tv")
-                          .map((item) => (
-                            <motion.div
-                              key={item.id}
-                              initial={{ opacity: 0, scale: 0.98 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.3 }}
-                              className="bg-white dark:bg-neutral-800 rounded-lg shadow-lg overflow-hidden flex flex-col group transform hover:scale-101 transition-transform duration-200"
-                            >
-                              <img
-                                src={
-                                  item.poster_path
-                                    ? `${IMAGE_BASE_URL}${item.poster_path}`
-                                    : item.profile_path
-                                      ? `${IMAGE_BASE_URL}${item.profile_path}`
-                                      : placeholderImage
-                                }
-                                alt={getTitle(item)}
-                                className="w-full h-auto aspect-[2/3] object-cover cursor-pointer" // Fixed aspect ratio for poster
-                                onClick={() =>
-                                  navigate(
-                                    `/series/${item.id}${lang === "ar" ? "?l=ar" : ""}`,
-                                  )
-                                }
-                              />
-                              <div className="p-3 flex flex-col flex-grow">
-                                <h3 className="text-md font-ar font-semibold text-black dark:text-white truncate group-hover:text-rose-600 dark:group-hover:text-rose-500 transition-colors">
-                                  {getTitle(item)}
-                                </h3>
-                                <p className="text-xs font-ar text-gray-500 dark:text-gray-400 uppercase mt-0.5">
-                                  {getTextByLang(
-                                    lang,
-                                    item.media_type === "movie"
-                                      ? "فيلم"
-                                      : item.media_type === "tv"
-                                        ? "مسلسل"
-                                        : "شخص",
-                                    item.media_type,
-                                  )}{" "}
-                                  {getYear(item)}
-                                </p>
-                                {item.overview && (
-                                  <p className="text-xs text-gray-700 dark:text-gray-300 mt-2 line-clamp-3 flex-grow">
-                                    {" "}
-                                    {/* Requires @tailwindcss/line-clamp plugin */}
-                                    {item.overview}
-                                  </p>
-                                )}
-                                <p className="text-xs font-ar text-gray-500 dark:text-gray-400 mt-auto pt-2">
-                                  {lang === "ar" ? "تقييم: " : "Rating: "}{" "}
-                                  {item.vote_average
-                                    ? item.vote_average.toFixed(1)
-                                    : "N/A"}{" "}
-                                  ({item.vote_count}{" "}
-                                  {lang === "ar" ? "صوت" : "votes"})
-                                </p>
-                              </div>
-                            </motion.div>
-                          ))}
-                      </div>
-                    </div>
-                  ) : null}
+              {/* Tabs Filter */}
+              {searchResults?.results?.length > 0 && (
+                <div className="flex items-center gap-2 mt-4 overflow-x-auto pb-1 no-scrollbar">
+                  <FilterTab label={getTextByLang(lang, "الكل", "All")} active={activeTab === 'all'} onClick={() => setActiveTab('all')} />
+                  <FilterTab label={getTextByLang(lang, "أفلام", "Movies")} active={activeTab === 'movie'} onClick={() => setActiveTab('movie')} icon={<Film size={14} />} />
+                  <FilterTab label={getTextByLang(lang, "مسلسلات", "TV Shows")} active={activeTab === 'tv'} onClick={() => setActiveTab('tv')} icon={<Tv size={14} />} />
+                  <FilterTab label={getTextByLang(lang, "أشخاص", "People")} active={activeTab === 'person'} onClick={() => setActiveTab('person')} icon={<User size={14} />} />
+                </div>
+              )}
+            </div>
 
-                  {searchResults.results.filter(
-                    (item) => item.media_type === "person",
-                  ).length > 0 ? (
-                    <div className="flex flex-col gap-3">
-                      <h1 className="font-ar dark:text-white">
-                        {getTextByLang(lang, "أشخاص", "People")}
-                      </h1>
-                      <div className="grid lg:grid-cols-5  md:grid-cols-4 sm:grid-cols-3 grid-cols-2  gap-5">
-                        {searchResults.results
-                          .filter((item) => item.media_type === "person")
-                          .map((item) => (
-                            <motion.div
-                              key={item.id}
-                              initial={{ opacity: 0, scale: 0.98 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.3 }}
-                              className="bg-white dark:bg-neutral-800 rounded-lg shadow-lg overflow-hidden flex flex-col group transform hover:scale-101 transition-transform duration-200"
-                            >
-                              <img
-                                src={
-                                  item.poster_path
-                                    ? `${IMAGE_BASE_URL}${item.poster_path}`
-                                    : item.profile_path
-                                      ? `${IMAGE_BASE_URL}${item.profile_path}`
-                                      : placeholderImage
-                                }
-                                alt={getTitle(item)}
-                                className="w-full h-auto aspect-[2/3] object-cover cursor-pointer" // Fixed aspect ratio for poster
-                              />
-                              <div className="p-3 flex flex-col flex-grow">
-                                <h3 className="text-md font-ar font-semibold text-black dark:text-white truncate group-hover:text-rose-600 dark:group-hover:text-rose-500 transition-colors">
-                                  {getTitle(item)}
-                                </h3>
-                                <p className="text-xs font-ar text-gray-500 dark:text-gray-400 uppercase mt-0.5">
-                                  {getTextByLang(
-                                    lang,
-                                    item.media_type === "movie"
-                                      ? "فيلم"
-                                      : item.media_type === "tv"
-                                        ? "مسلسل"
-                                        : "شخص",
-                                    item.media_type,
-                                  )}{" "}
-                                  {getYear(item)}
-                                </p>
-                                {item.overview && (
-                                  <p className="text-xs text-gray-700 dark:text-gray-300 mt-2 line-clamp-3 flex-grow">
-                                    {" "}
-                                    {/* Requires @tailwindcss/line-clamp plugin */}
-                                    {item.overview}
-                                  </p>
-                                )}
-                                <p className="text-xs font-ar text-gray-500 dark:text-gray-400 mt-auto pt-2">
-                                  {lang === "ar" ? "تقييم: " : "Rating: "}{" "}
-                                  {item.vote_average
-                                    ? item.vote_average.toFixed(1)
-                                    : "N/A"}{" "}
-                                  ({item.vote_count}{" "}
-                                  {lang === "ar" ? "صوت" : "votes"})
-                                </p>
-                              </div>
-                            </motion.div>
-                          ))}
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
-              ) : (
-                // No results found for the query
-                <div className="flex justify-center items-center h-full text-center">
-                  <p className="text-gray-500 dark:text-gray-400 text-lg">
-                    {searchQuery.trim()
-                      ? lang === "ar"
-                        ? `لم يتم العثور على نتائج لـ "${searchQuery}"`
-                        : `No results found for "${searchQuery}"`
-                      : lang === "ar"
-                        ? "ابدأ بالكتابة للبحث"
-                        : "Start typing to search"}
-                  </p>
-                </div>
-              )
-            ) : (
-              // Initial state or searchQuery is empty
-              <div className="flex justify-center items-center h-full text-center">
-                <p className="text-gray-500 dark:text-gray-400 text-lg">
-                  {lang === "ar"
-                    ? "ابدأ بالكتابة للبحث عن الأفلام والمسلسلات والمزيد"
-                    : "Start typing to search for movies, TV shows, and more."}
-                </p>
-              </div>
-            )}
-          </div>
-        </motion.div>
-      ) : null}
-      {/* Navigation Menu Overlay */}
-      {showNavMenu ? (
-        <motion.div
-          initial={{ opacity: 0, x: lang === "ar" ? 100 : -100 }} // Slide from side based on lang
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: lang === "ar" ? 100 : -100 }}
-          className="z-30 w-full sm:w-64 md:w-72 h-[calc(100vh-60px)] dark:bg-zinc-800 overflow-auto absolute bg-zinc-300 top-[60px] shadow-xl"
-          style={lang === "ar" ? { right: 0 } : { left: 0 }}
-        >
-          <div className="w-full flex-col text-black font-ar dark:text-white divide-y divide-gray-300 dark:divide-gray-700">
-            {[
-              { to: "/", ar: "الرئيسية", en: "Home" },
-              { to: "/discover", ar: "اكتشف", en: "Discover" },
-              {
-                to: "/watchlater",
-                ar: "قائمة المشاهدة لاحقًا",
-                en: "Watch Later",
-              },
-            ].map((link) => (
-              <div
-                key={link.to}
-                className="h-fit p-3.5 px-7 hover:bg-gray-200 dark:hover:bg-neutral-700 transition-colors"
-              >
-                <Link
-                  onClick={() => {
-                    setShowNavMenu(false);
-                  }}
-                  to={link.to}
-                  className="select-none cursor-pointer block w-full"
-                >
-                  {lang === "ar" ? link.ar : link.en}
-                </Link>
-              </div>
-            ))}
-            <div className="h-fit p-3.5 px-7 hover:bg-gray-200 dark:hover:bg-neutral-700 transition-colors">
-              <div
-                className="select-none cursor-pointer"
-                onClick={() => {
-                  setShowNavMenu(false);
-                }}
-              >
-                {lang === "ar" ? "إغلاق" : "Close"}
+            {/* Content Area */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-8">
+              <div className="max-w-7xl mx-auto min-h-[50vh]">
+
+                {loadingResults ? (
+                  <SearchSkeleton />
+                ) : searchResults?.results?.length > 0 ? (
+                  <SearchResultsGrid
+                    results={searchResults.results}
+                    activeTab={activeTab}
+                    lang={lang}
+                    navigate={navigate}
+                  />
+                ) : searchQuery ? (
+                  <EmptySearchState lang={lang} query={searchQuery} />
+                ) : (
+                  <InitialSearchState lang={lang} />
+                )}
+
               </div>
             </div>
-          </div>
-        </motion.div>
-      ) : null}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* --- MOBILE DRAWER --- */}
+      <AnimatePresence>
+        {showNavMenu && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+              onClick={() => setShowNavMenu(false)}
+            />
+            <motion.div
+              initial={{ x: lang === 'ar' ? '100%' : '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: lang === 'ar' ? '100%' : '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className={`fixed top-0 bottom-0 z-50 w-72 bg-white dark:bg-neutral-900 shadow-2xl p-6 flex flex-col
+                         ${lang === 'ar' ? 'right-0 border-l' : 'left-0 border-r'} border-gray-100 dark:border-neutral-800`}
+            >
+              {/* Drawer Content Same as before... */}
+              <div className="flex justify-between items-center mb-8">
+                <span className="font-black text-xl">
+                  MOVI<span className="text-rose-500">X</span>
+                </span>
+                <button onClick={() => setShowNavMenu(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="flex flex-col space-y-2">
+                {[
+                  { path: "/", label_ar: "الرئيسية", label_en: "Home", icon: <Film size={18} /> },
+                  { path: "/discover", label_ar: "اكتشف", label_en: "Discover", icon: <Globe size={18} /> },
+                  { path: "/watchlater", label_ar: "قائمتي", label_en: "My List", icon: <Tv size={18} /> },
+                ].map((link) => (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    onClick={() => setShowNavMenu(false)}
+                    className="flex items-center gap-4 p-3 rounded-xl hover:bg-rose-50 dark:hover:bg-neutral-800 hover:text-rose-500 transition-all font-medium"
+                  >
+                    {link.icon}
+                    {lang === 'ar' ? link.label_ar : link.label_en}
+                  </Link>
+                ))}
+              </div>
+
+              {/* Footer / Extra Info */}
+              <div className="mt-auto pt-6 border-t border-gray-100 dark:border-neutral-800">
+                <div className="flex items-center gap-2 text-gray-400 text-sm">
+                  <Globe size={16} />
+                  <span>{isArabic ? "العربية" : "English"}</span>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+
+// --- SUB COMPONENTS ---
+
+const FilterTab = ({ label, active, onClick, icon }) => (
+  <button
+    onClick={onClick}
+    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap
+        ${active
+        ? "bg-rose-500 text-white shadow-lg shadow-rose-500/30"
+        : "bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-neutral-700"
+      }`}
+  >
+    {icon}
+    {label}
+  </button>
+);
+
+const SearchResultsGrid = ({ results, activeTab, lang, navigate }) => {
+  // Filter results based on active tab
+  const filtered = useMemo(() => {
+    if (activeTab === 'all') return results;
+    return results.filter(item => item.media_type === activeTab);
+  }, [results, activeTab]);
+
+  if (filtered.length === 0) {
+    return (
+      <div className="text-center py-20 text-gray-500">
+        <p className="text-lg">{getTextByLang(lang, "لا توجد نتائج في هذه الفئة", "No results in this category")}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-4 md:gap-6">
+      {filtered.map((item, idx) => (
+        <ResultCard key={item.id} item={item} idx={idx} lang={lang} navigate={navigate} />
+      ))}
+    </div>
+  );
+};
+
+const ResultCard = ({ item, idx, lang, navigate }) => {
+  const isPerson = item.media_type === 'person';
+  const title = item.title || item.name;
+  const year = item.release_date?.substring(0, 4) || item.first_air_date?.substring(0, 4);
+  const rating = item.vote_average ? item.vote_average.toFixed(1) : null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: idx * 0.03 }}
+      onClick={() => {
+        if (isPerson) return;
+        navigate(`/${item.media_type === 'movie' ? 'movies' : 'series'}/${item.id}${lang === "ar" ? "?l=ar" : ""}`);
+      }}
+      className="group relative cursor-pointer"
+    >
+      {/* Poster Container */}
+      <div className={`relative overflow-hidden bg-neutral-800 shadow-md transition-all duration-300 group-hover:shadow-2xl group-hover:shadow-rose-500/10 group-hover:-translate-y-1
+                ${isPerson ? "rounded-full aspect-square" : "rounded-xl aspect-[2/3]"}
+            `}>
+        <img
+          src={item.poster_path || item.profile_path ? `${IMAGE_BASE_URL}${item.poster_path || item.profile_path}` : "https://via.placeholder.com/300x450?text=No+Image"}
+          alt={title}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          loading="lazy"
+        />
+
+        {/* Hover Overlay (Not for Person) */}
+        {!isPerson && (
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
+            <button className="bg-rose-600 text-white text-xs font-bold py-2 px-4 rounded-full mx-auto mb-2 transform scale-90 group-hover:scale-100 transition-transform">
+              {getTextByLang(lang, "عرض", "View")}
+            </button>
+          </div>
+        )}
+
+        {/* Rating Badge */}
+        {!isPerson && rating > 0 && (
+          <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded-md flex items-center gap-1">
+            <Star size={10} className="text-yellow-400 fill-yellow-400" />
+            <span className="text-[10px] font-bold text-white">{rating}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Info */}
+      <div className={`mt-3 ${isPerson ? "text-center" : "text-start"}`}>
+        <h3 className="font-bold text-sm text-neutral-800 dark:text-neutral-200 truncate group-hover:text-rose-500 transition-colors">
+          {title}
+        </h3>
+        <div className="flex items-center gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400 justify-start">
+          {!isPerson && <span>{year}</span>}
+          <span className="uppercase border border-gray-200 dark:border-neutral-700 px-1 rounded text-[9px]">
+            {item.media_type === 'tv' ? 'TV' : item.media_type}
+          </span>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// Skeleton Loading UI
+const SearchSkeleton = () => (
+  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 animate-pulse">
+    {Array.from({ length: 12 }).map((_, i) => (
+      <div key={i}>
+        <div className="aspect-[2/3] bg-gray-200 dark:bg-neutral-800 rounded-xl mb-3"></div>
+        <div className="h-4 bg-gray-200 dark:bg-neutral-800 rounded w-3/4 mb-2"></div>
+        <div className="h-3 bg-gray-200 dark:bg-neutral-800 rounded w-1/2"></div>
+      </div>
+    ))}
+  </div>
+);
+
+const InitialSearchState = ({ lang }) => (
+  <div className="flex flex-col items-center justify-center h-[50vh] text-gray-400 dark:text-neutral-600">
+    <div className="w-20 h-20 bg-gray-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mb-4">
+      <Search className="w-8 h-8 opacity-50" />
+    </div>
+    <p className="text-xl font-medium">{getTextByLang(lang, "ما الذي تبحث عنه؟", "What are you looking for?")}</p>
+    <p className="text-sm mt-2 opacity-70">{getTextByLang(lang, "ابحث عن الأفلام، المسلسلات، والمزيد", "Search for movies, TV series, and more")}</p>
+  </div>
+);
+
+const EmptySearchState = ({ lang, query }) => (
+  <div className="flex flex-col items-center justify-center h-[50vh] text-gray-500">
+    <Film className="w-16 h-16 mb-4 stroke-1 opacity-50" />
+    <p className="text-lg">
+      {getTextByLang(lang, "لا توجد نتائج لـ", "No results found for")} <span className="text-rose-500 font-bold">"{query}"</span>
+    </p>
+  </div>
+);
 
 export default HomePage;
