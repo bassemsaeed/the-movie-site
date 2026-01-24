@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Star, Play, Loader2, X, Sparkles, ChevronRight } from "lucide-react";
+import { Search, Star, Play, Loader2, X, Sparkles, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router";
 import { getTextByLang } from "../utils";
 import useTheme from "../hooks/useTheme";
@@ -37,7 +37,6 @@ const ItemVariants = {
 };
 
 // --- Minimalist Card Component ---
-// Text is BELOW the image for a cleaner, gallery look
 const MediaCard = memo(({ item }) => {
   const navigate = useNavigate();
   const title = item.title || item.name || item.original_name || "No Title";
@@ -54,7 +53,6 @@ const MediaCard = memo(({ item }) => {
       className="group cursor-pointer flex flex-col gap-2"
       onClick={() => navigate(`/${item.mediaType === "tv" ? "series" : "movies"}/${item.id}`)}
     >
-      {/* Poster Image */}
       <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-zinc-800 shadow-sm transition-transform duration-300 group-hover:scale-[1.03] group-hover:shadow-xl ring-1 ring-white/10">
         <img
           src={posterUrl}
@@ -62,13 +60,11 @@ const MediaCard = memo(({ item }) => {
           className="w-full h-full object-cover"
           loading="lazy"
         />
-        {/* Subtle Hover Overlay */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
           <div className="bg-white/20 backdrop-blur-sm p-3 rounded-full">
             <Play className="fill-white text-white w-5 h-5 ml-1" />
           </div>
         </div>
-        {/* Rating Badge (Top Right) */}
         {rating && (
           <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded text-[10px] font-bold text-white flex items-center gap-1 border border-white/10">
             <Star size={8} className="fill-yellow-400 text-yellow-400" />
@@ -76,8 +72,6 @@ const MediaCard = memo(({ item }) => {
           </div>
         )}
       </div>
-
-      {/* Metadata (Below Image) */}
       <div className="px-1">
         <h3 className="text-gray-900 dark:text-gray-100 font-medium text-sm leading-tight line-clamp-1 group-hover:text-blue-500 transition-colors">
           {title}
@@ -99,6 +93,8 @@ const Discover = () => {
   const [userPrompt, setUserPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState("");
+  const [error, setError] = useState(null); // New Error State
+
   const [tmdbResults, setTmdbResults] = useState(() => {
     try { return JSON.parse(localStorage.getItem("cachedAiResults")); } catch { return null; }
   });
@@ -116,6 +112,7 @@ const Discover = () => {
 
     setLoading(true);
     setFeedback("");
+    setError(null); // Reset error
     setTmdbResults(null);
 
     const eventSource = new EventSource(`${API_BASE_URL}airecommend?prompt=${encodeURIComponent(trimmed)}`);
@@ -123,85 +120,130 @@ const Discover = () => {
     eventSource.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data);
+
+        // 1. Handle progressive feedback
         if (data.message) setFeedback(data.message);
+
+        // 2. Handle Logic Error from API
+        if (data.success === false) {
+          setLoading(false);
+          setError(getTextByLang(lang, "حدث خطأ أثناء المعالجة", "Something went wrong processing your request."));
+          eventSource.close();
+          return;
+        }
+
+        // 3. Handle Completion
         if (data?.value && data.end === true) {
-          setTmdbResults(data.value);
+          if (!data.value || data.value.length === 0) {
+            setError(getTextByLang(lang, "لم يتم العثور على نتائج", "No recommendations found. Try a different phrasing."));
+          } else {
+            setTmdbResults(data.value);
+          }
           setLoading(false);
           setFeedback("");
           eventSource.close();
         }
-        if (data.success === false) {
-          setLoading(false);
-          eventSource.close();
-        }
-      } catch (err) { console.error(err); }
+
+      } catch (err) {
+        console.error(err);
+        setError("Data parsing error");
+        setLoading(false);
+        eventSource.close();
+      }
     };
 
+    // 4. Handle Network Errors (Server down, timeout)
     eventSource.onerror = () => {
       setLoading(false);
+      setFeedback("");
+      setError(getTextByLang(lang, "فشل الاتصال بالخادم", "Connection failed. Please check your internet."));
       eventSource.close();
     };
-  }, []);
+  }, [lang]);
 
   return (
     <div
       dir={lang === "ar" ? "rtl" : "ltr"}
-      // Simplified background: Dark mode is nearly black, Light mode is pure white
       className="h-[calc(100vh-60px)] w-full overflow-y-auto bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-white custom-scrollbar"
     >
 
       {/* --- Header & Search Area --- */}
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-6">
 
-        {/* 1. Large Search Bar */}
+        {/* Large Search Bar */}
         <div className="max-w-3xl mx-auto mb-8">
-          <div className="relative group">
+          <div className={`relative group transition-colors duration-300 ${error ? "text-rose-500" : ""}`}>
             <input
               type="text"
-              className="w-full bg-transparent border-b-2 border-gray-200 dark:border-zinc-800 text-2xl md:text-3xl font-light py-4 pr-12 pl-2 focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors placeholder-gray-300 dark:placeholder-zinc-700"
+              className={`w-full bg-transparent border-b-2 text-2xl md:text-3xl font-light py-4 pr-12 pl-2 focus:outline-none transition-colors placeholder-gray-300 dark:placeholder-zinc-700
+                    ${error
+                  ? "border-rose-300 dark:border-rose-900/50 focus:border-rose-500 text-rose-600 dark:text-rose-400"
+                  : "border-gray-200 dark:border-zinc-800 focus:border-blue-500 dark:focus:border-blue-500"
+                }`}
               placeholder={getTextByLang(lang, "بم تشعر؟", "What's the vibe today?")}
               value={userPrompt}
-              onChange={(e) => setUserPrompt(e.target.value)}
+              onChange={(e) => {
+                setUserPrompt(e.target.value);
+                if (error) setError(null); // Clear error when user types
+              }}
               onKeyDown={(e) => e.key === "Enter" && performSearch(userPrompt)}
             />
+
+            {/* Search Icon / Loader */}
             <button
               onClick={() => performSearch(userPrompt)}
-              className="absolute right-0 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-blue-500 transition-colors"
+              disabled={loading}
+              className="absolute right-0 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-blue-500 transition-colors disabled:cursor-not-allowed"
             >
               {loading ? <Loader2 className="animate-spin w-6 h-6" /> : <Search className="w-6 h-6" />}
             </button>
           </div>
 
-          {/* AI Feedback Line */}
-          <div className="h-6 mt-2 flex items-center gap-2">
-            <AnimatePresence>
-              {(loading || feedback) && (
+          {/* Status Line (Feedback OR Error) */}
+          <div className="h-8 mt-2 flex items-center gap-2 overflow-hidden">
+            <AnimatePresence mode="wait">
+              {/* State 1: Loading / Feedback */}
+              {(loading || feedback) && !error && (
                 <motion.div
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0 }}
+                  key="feedback"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
                   className="flex items-center gap-2 text-sm text-blue-500 font-medium"
                 >
                   <Sparkles size={14} className={loading ? "animate-pulse" : ""} />
                   <span>{feedback || getTextByLang(lang, "جاري التفكير...", "Thinking...")}</span>
                 </motion.div>
               )}
+
+              {/* State 2: Error Message */}
+              {error && (
+                <motion.div
+                  key="error"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="flex items-center gap-2 text-sm text-rose-500 font-medium"
+                >
+                  <AlertCircle size={14} />
+                  <span>{error}</span>
+                </motion.div>
+              )}
             </AnimatePresence>
           </div>
         </div>
 
-        {/* 2. Controls Row (Categories + Chips) */}
+        {/* Controls Row */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-b border-gray-100 dark:border-zinc-900 pb-4">
 
-          {/* Minimal Text Tabs */}
           <div className="flex items-center gap-8">
             {['movie', 'tv'].map((type) => (
               <button
                 key={type}
                 onClick={() => setCurrentCategory(type)}
                 className={`text-sm font-medium transition-colors relative pb-1 ${currentCategory === type
-                  ? 'text-black dark:text-white'
-                  : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300'
+                    ? 'text-black dark:text-white'
+                    : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300'
                   }`}
               >
                 {getTextByLang(lang, type === 'movie' ? "أفلام" : "مسلسلات", type === 'movie' ? "Movies" : "TV Series")}
@@ -212,7 +254,6 @@ const Discover = () => {
             ))}
           </div>
 
-          {/* Subtle Filter Chips */}
           <div className="flex items-center gap-2 overflow-x-auto max-w-full hidden-scrollbar">
             {QUICK_FILTERS.map((f, i) => (
               <button
@@ -233,7 +274,7 @@ const Discover = () => {
 
       {/* --- Results Grid --- */}
       <div className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-        {processedResults ? (
+        {processedResults && !error ? (
           <motion.div
             variants={ContainerVariants}
             initial="hidden"
@@ -250,25 +291,27 @@ const Discover = () => {
             </AnimatePresence>
           </motion.div>
         ) : (
-          /* --- Minimal Empty State --- */
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex flex-col items-center justify-center py-24 text-center opacity-50"
-          >
-            <div className="w-16 h-16 rounded-full bg-gray-50 dark:bg-zinc-900 flex items-center justify-center mb-4">
-              <Search className="w-6 h-6 text-gray-400" />
-            </div>
-            <p className="text-sm font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
-              {getTextByLang(lang, "ابدأ البحث", "Start exploring")}
-            </p>
-          </motion.div>
+          /* --- Minimal Empty/Idle State --- */
+          !error && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center py-24 text-center opacity-50"
+            >
+              <div className="w-16 h-16 rounded-full bg-gray-50 dark:bg-zinc-900 flex items-center justify-center mb-4">
+                <Search className="w-6 h-6 text-gray-400" />
+              </div>
+              <p className="text-sm font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
+                {getTextByLang(lang, "ابدأ البحث", "Start exploring")}
+              </p>
+            </motion.div>
+          )
         )}
 
-        {/* Empty Category Message */}
-        {processedResults && processedResults.filter((item) => item.mediaType === currentCategory).length === 0 && (
+        {/* --- Empty Category Fallback --- */}
+        {processedResults && !error && processedResults.filter((item) => item.mediaType === currentCategory).length === 0 && (
           <div className="text-center py-20 text-gray-400 dark:text-zinc-600 text-sm">
-            {getTextByLang(lang, "لا توجد نتائج", "No results found")}
+            {getTextByLang(lang, "لا توجد نتائج في هذه الفئة", "No results found in this category")}
           </div>
         )}
       </div>
