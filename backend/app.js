@@ -23,7 +23,7 @@ import { limit } from "./middlewares/ratelimiterforai.middleware.js";
 
 const app = express();
 
-app.set("trust proxy", true);
+// app.set("trust proxy", true);
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
